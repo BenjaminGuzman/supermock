@@ -37,9 +37,9 @@
             <div class="flex-grow">
                 <p class="w-full mb-2"><%= track.title %></p>
                 <p>$<%= track.price %> USD</p>
-                <audio class="w-full" src="/v1<%= track.preview %>" controls></audio>
+                <audio class="w-full" src="<%= track.preview %>" controls></audio>
             </div>
-            <a target="_blank" href="/v1<%= track.link %>" title="Listen to <%= track.title %> on Deezer">
+            <a target="_blank" href="<%= track.link %>" title="Listen to <%= track.title %> on Deezer">
                 <img src="/v1/img/deezer.min.webp" alt="Deezer" class="w-8 h-8">
             </a>
             <button onclick="addTrack2Cart(<%= track.id %>, this)"

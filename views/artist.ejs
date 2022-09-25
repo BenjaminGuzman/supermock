@@ -38,7 +38,7 @@
     <% artist.albums.forEach(album => { %>
     <div class="flex flex-col justify-center items-center text-center gap-3">
         <a href="/v1/album/<%= album.id %>">
-            <img src="/v1<%= album.cover %>" alt="<%= album.title%>" class="block max-w-[12rem] hover:scale-110 transition-transform">
+            <img src="<%= album.cover %>" alt="<%= album.title%>" class="block max-w-[12rem] hover:scale-110 transition-transform">
         </a>
         <a href="/v1/album/<%= album.id %>" class="link"><%= album.title %></a>
     </div>
