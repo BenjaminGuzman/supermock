@@ -70,6 +70,24 @@ sudo docker compose up -d
 
 If you need to add HTTPS, you can follow the instructions to do so for version 1
 
+## Develop
+
+If you want to run the project locally you'll need to spin up the angular server (described in Frontend section) and 
+all the backend microservices (described in Backend section)
+
+### Backend
+
+In order to run all backend microservices you need to execute `npm run start` (or `npm run start:dev`) from within each
+microservice directory, e.g. to start the _users_ microservice you need to be placed inside 
+[`backend/users`](backend/users) and run the already mentioned command.
+
+Note: if you don't want to set up a PostgreSQL database in your machine, you could simply start a docker container with 
+`docker compose -f docker-compose-psql.yml up`.
+
+### Frontend
+
+Simply run `npm run start` from within the [`frontend`](frontend) directory
+
 ## Usage
 
 ### Special endpoints

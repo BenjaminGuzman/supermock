@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres
+    restart: on-failure
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - "./db/001-db-init.sh:/docker-entrypoint-initdb.d/001-db-init.sh"
+      - "./db/002-ddl.sql:/docker-entrypoint-initdb.d/002-ddl.sql"
+    environment:
+      - "POSTGRES_PASSWORD=pass"
