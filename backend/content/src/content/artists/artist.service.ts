@@ -90,7 +90,8 @@ export class ArtistService {
       "Gabylonia",
       "C-kan",
       "Adele",
-      "The Rocky Soloists & Orchestra"
+      "The Rocky Soloists & Orchestra",
+      "Siddhartha"
     ];
 
     try {

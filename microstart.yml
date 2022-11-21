@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/BenjaminGuzman/microstart/main/src/main/resources/schema.json
+services:
+  - name: Docker daemon
+    start: sudo --stdin systemctl start docker; sudo --stdin systemctl status docker # run microstart with sudo or this will break (but see comment below)
+    color: 0x00ff00
+    startedPatterns:
+      - "active \\(running\\)" # microstart searches for REGEXes, not string. Thus, we need to escape the parenthesis
+    stdin: sudo-password.txt # to avoid having your password in a plain text file, simply run "sudo echo" or something to store the password in cache
+
+  - name: PostgreSQL
+    start: sudo --stdin docker compose -f docker-compose-psql.yml up # run microstart with sudo or this will break (but see comment below)
+    aliases:
+      - psql
+      - postgres
+    color: 0x00ff00
+    startedPatterns:
+      - database system is ready to accept connections
+    stdin: sudo-password.txt # to avoid having your password in a plain text file, simply run "sudo echo" or something to store the password in cache
+
+  - name: Users
+    start: cd backend/users && npm run start:dev
+    aliases:
+      - users
+    color: 0xff00ff
+    startedPatterns:
+      - Nest application successfully started
+
+  - name: Content
+    aliases:
+      - content
+    start: cd backend/content && npm run start:dev
+    color: 0x0000ff
+    startedPatterns:
+      - Nest application successfully started
+
+  - name: Frontend
+    aliases:
+      - frontend
+    start: cd frontend && npm run start
+    color: 0xf0f0f0
+    startedPatterns:
+      - Angular Live Development Server is listening
+
+groups:
+  - name: Frontend group
+    aliases:
+      - frontend
+    services:
+      - frontend
+    dependencies:
+      - backend
+
+  - name: Backend group
+    aliases:
+      - backend
+    services:
+      - content
+      - users
+    dependencies:
+      - database
+
+  - name: Database group
+    aliases:
+      - database
+    services:
+      - postgres
+    dependencies:
+      - systemd-docker
+
+  - name: Systemd docker
+    aliases:
+      - systemd-docker
+    services:
+      - Docker daemon

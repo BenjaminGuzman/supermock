@@ -84,6 +84,9 @@ microservice directory, e.g. to start the _users_ microservice you need to be pl
 Note: if you don't want to set up a PostgreSQL database in your machine, you could simply start a docker container with 
 `docker compose -f docker-compose-psql.yml up`.
 
+**Note**: If you want to **easily start** everything in development mode, simply use
+[Microstart](https://github.com/BenjaminGuzman/microstart). Check [`microstart.yml`](microstart.yml)
+
 ### Frontend
 
 Simply run `npm run start` from within the [`frontend`](frontend) directory
