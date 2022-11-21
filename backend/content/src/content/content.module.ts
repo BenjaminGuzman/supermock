@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ArtistEntity } from "./artists/artist.entity";
 import { AlbumEntity } from "./albums/album.entity";
@@ -10,9 +10,10 @@ import { ArtistResolver } from "./artists/artist.resolver";
 import { AlbumResolver } from "./albums/album.resolver";
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ArtistEntity, AlbumEntity, TrackEntity])
-  ],
-  providers: [ArtistService, AlbumService, TrackService, ArtistResolver, AlbumResolver]
+	imports: [
+		TypeOrmModule.forFeature([ArtistEntity, AlbumEntity, TrackEntity]),
+	],
+	providers: [ArtistService, AlbumService, TrackService, ArtistResolver, AlbumResolver],
 })
-export class ContentModule {}
+export class ContentModule {
+}

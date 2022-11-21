@@ -1,25 +1,25 @@
-import { Entity, Column, ManyToOne, OneToMany, PrimaryColumn, JoinTable, JoinColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
 import { ArtistEntity } from "../artists/artist.entity";
 import { TrackEntity } from "../tracks/track.entity";
 
 @Entity("albums")
 export class AlbumEntity {
-  @PrimaryColumn("int")
-  id: number;
+	@PrimaryColumn("int")
+	id: number;
 
-  @Column("varchar", { nullable: false })
-  title: string;
+	@Column("varchar", { nullable: false })
+	title: string;
 
-  @Column("varchar", { nullable: true })
-  link: string;
+	@Column("varchar", { nullable: true })
+	link: string;
 
-  @Column("varchar", { nullable: true, comment: "URL to deezer's cover image" })
-  cover: string;
+	@Column("varchar", { nullable: true, comment: "URL to deezer's cover image" })
+	cover: string;
 
-  @ManyToOne(() => ArtistEntity, (artist) => artist.albums)
-  @JoinColumn({name: "artist_id"})
-  artist: ArtistEntity;
+	@ManyToOne(() => ArtistEntity, (artist) => artist.albums)
+	@JoinColumn({ name: "artist_id" })
+	artist: ArtistEntity;
 
-  @OneToMany(() => TrackEntity, (track) => track.album)
-  tracks: TrackEntity[];
+	@OneToMany(() => TrackEntity, (track) => track.album)
+	tracks: TrackEntity[];
 }
