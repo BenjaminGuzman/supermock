@@ -1,4 +1,13 @@
 services:
+  auth:
+    image: guzmanbenjamin/webmock-content:v2.0-alpha
+    restart: on-failure
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - "./backend/auth/.env.prod:/.env"
+      - "./backend/auth/secret.txt:/secret.txt"
+
   content:
     image: guzmanbenjamin/webmock-content:v2.0-alpha
     restart: on-failure
@@ -7,7 +16,8 @@ services:
     volumes:
       - "./backend/content/.env.prod:/usr/src/.env"
     links:
-      - "db:postgres"
+      - "postgres:postgres"
+      - "auth:auth"
 
   users:
     image: guzmanbenjamin/webmock-users:v2.0-alpha
@@ -17,9 +27,10 @@ services:
     volumes:
       - "./backend/users/.env.prod:/usr/src/.env"
     links:
-      - "db:postgres"
+      - "postgres:postgres"
+      - "auth:auth"
 
-  db:
+  postgres:
     image: postgres
     restart: on-failure
     volumes:
@@ -27,3 +38,5 @@ services:
       - "./db/002-ddl.sql:/docker-entrypoint-initdb.d/002-ddl.sql"
     environment:
       - "POSTGRES_PASSWORD=pass"
+
+  # TODO add MongoDB

@@ -16,7 +16,11 @@ import { GraphQLError, GraphQLFormattedError } from "graphql/index";
 	imports: [
 		ConfigModule.forRoot({
 			validationSchema: Joi.object({
-				NODE_ENV: Joi.string().valid("development", "production", "test"),
+				NODE_ENV: Joi.string().valid(
+					"development",
+					"production",
+					"test",
+				),
 				PORT: Joi.number().port(),
 				BIND_IP: Joi.string(),
 				DB_HOST: Joi.string(),
@@ -48,7 +52,9 @@ import { GraphQLError, GraphQLFormattedError } from "graphql/index";
 			inject: [ConfigService],
 			useFactory: async (config: ConfigService) => ({
 				secret: config.get<string>("JWT_SECRET"),
-				signOptions: { expiresIn: config.get<string>("JWT_EXPIRATION") },
+				signOptions: {
+					expiresIn: config.get<string>("JWT_EXPIRATION"),
+				},
 			}),
 		}),
 		GraphQLModule.forRootAsync<ApolloDriverConfig>({
@@ -80,5 +86,4 @@ import { GraphQLError, GraphQLFormattedError } from "graphql/index";
 	controllers: [AppController],
 	providers: [AppService, UsersResolver],
 })
-export class AppModule {
-}
+export class AppModule {}

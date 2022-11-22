@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+package auth;
+
+option go_package = "./auth;authpb";
+
 enum DecodeStatus {
   VALID = 0;
   EXPIRED = 1;
@@ -7,6 +11,9 @@ enum DecodeStatus {
 }
 
 message UserId {
+  // it is a string but DON'T abuse
+  // DON'T try to enter a stringified JSON here
+  // JWT payload is meant to contain the least amount of data possible
   string userId = 1;
 }
 
@@ -21,5 +28,7 @@ message DecodedJWT {
 
 service Auth {
   rpc createJWT(UserId) returns (JWT) {}
+
+  // Decode and verify the JWT
   rpc decodeJWT(JWT) returns (DecodedJWT) {}
 }

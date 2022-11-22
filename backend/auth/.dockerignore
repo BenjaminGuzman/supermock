@@ -1,0 +1,13 @@
+Dockerfile
+.dockerignore
+
+# exclude environment files
+.env
+.env.example
+
+# exclude binaries
+auth
+
+# exclude utilities not needed for production
+random-secret.sh
+secret.txt
