@@ -18,122 +18,124 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AuthClient is the client API for Auth service.
+// AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AuthClient interface {
+type AuthServiceClient interface {
 	CreateJWT(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*JWT, error)
-	DecodeJWT(ctx context.Context, in *JWT, opts ...grpc.CallOption) (*DecodedJWT, error)
+	// Verify and decode the JWT
+	VerifyJWT(ctx context.Context, in *JWT, opts ...grpc.CallOption) (*JWTVerification, error)
 }
 
-type authClient struct {
+type authServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAuthClient(cc grpc.ClientConnInterface) AuthClient {
-	return &authClient{cc}
+func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
+	return &authServiceClient{cc}
 }
 
-func (c *authClient) CreateJWT(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*JWT, error) {
+func (c *authServiceClient) CreateJWT(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*JWT, error) {
 	out := new(JWT)
-	err := c.cc.Invoke(ctx, "/auth.Auth/createJWT", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/createJWT", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) DecodeJWT(ctx context.Context, in *JWT, opts ...grpc.CallOption) (*DecodedJWT, error) {
-	out := new(DecodedJWT)
-	err := c.cc.Invoke(ctx, "/auth.Auth/decodeJWT", in, out, opts...)
+func (c *authServiceClient) VerifyJWT(ctx context.Context, in *JWT, opts ...grpc.CallOption) (*JWTVerification, error) {
+	out := new(JWTVerification)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/verifyJWT", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AuthServer is the server API for Auth service.
-// All implementations must embed UnimplementedAuthServer
+// AuthServiceServer is the server API for AuthService service.
+// All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
-type AuthServer interface {
+type AuthServiceServer interface {
 	CreateJWT(context.Context, *UserId) (*JWT, error)
-	DecodeJWT(context.Context, *JWT) (*DecodedJWT, error)
-	mustEmbedUnimplementedAuthServer()
+	// Verify and decode the JWT
+	VerifyJWT(context.Context, *JWT) (*JWTVerification, error)
+	mustEmbedUnimplementedAuthServiceServer()
 }
 
-// UnimplementedAuthServer must be embedded to have forward compatible implementations.
-type UnimplementedAuthServer struct {
+// UnimplementedAuthServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAuthServiceServer struct {
 }
 
-func (UnimplementedAuthServer) CreateJWT(context.Context, *UserId) (*JWT, error) {
+func (UnimplementedAuthServiceServer) CreateJWT(context.Context, *UserId) (*JWT, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateJWT not implemented")
 }
-func (UnimplementedAuthServer) DecodeJWT(context.Context, *JWT) (*DecodedJWT, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DecodeJWT not implemented")
+func (UnimplementedAuthServiceServer) VerifyJWT(context.Context, *JWT) (*JWTVerification, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyJWT not implemented")
 }
-func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
+func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
-// UnsafeAuthServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AuthServer will
+// UnsafeAuthServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthServiceServer will
 // result in compilation errors.
-type UnsafeAuthServer interface {
-	mustEmbedUnimplementedAuthServer()
+type UnsafeAuthServiceServer interface {
+	mustEmbedUnimplementedAuthServiceServer()
 }
 
-func RegisterAuthServer(s grpc.ServiceRegistrar, srv AuthServer) {
-	s.RegisterService(&Auth_ServiceDesc, srv)
+func RegisterAuthServiceServer(s grpc.ServiceRegistrar, srv AuthServiceServer) {
+	s.RegisterService(&AuthService_ServiceDesc, srv)
 }
 
-func _Auth_CreateJWT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthService_CreateJWT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserId)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).CreateJWT(ctx, in)
+		return srv.(AuthServiceServer).CreateJWT(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.Auth/createJWT",
+		FullMethod: "/auth.AuthService/createJWT",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).CreateJWT(ctx, req.(*UserId))
+		return srv.(AuthServiceServer).CreateJWT(ctx, req.(*UserId))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_DecodeJWT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthService_VerifyJWT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JWT)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).DecodeJWT(ctx, in)
+		return srv.(AuthServiceServer).VerifyJWT(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.Auth/decodeJWT",
+		FullMethod: "/auth.AuthService/verifyJWT",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).DecodeJWT(ctx, req.(*JWT))
+		return srv.(AuthServiceServer).VerifyJWT(ctx, req.(*JWT))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Auth_ServiceDesc is the grpc.ServiceDesc for Auth service.
+// AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Auth_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "auth.Auth",
-	HandlerType: (*AuthServer)(nil),
+var AuthService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "auth.AuthService",
+	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "createJWT",
-			Handler:    _Auth_CreateJWT_Handler,
+			Handler:    _AuthService_CreateJWT_Handler,
 		},
 		{
-			MethodName: "decodeJWT",
-			Handler:    _Auth_DecodeJWT_Handler,
+			MethodName: "verifyJWT",
+			Handler:    _AuthService_VerifyJWT_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

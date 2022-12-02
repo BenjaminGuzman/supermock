@@ -78,9 +78,9 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	authServer := server.NewAuthServer(getJWTSecret())
-	authpb.RegisterAuthServer(grpcServer, authServer)
+	authpb.RegisterAuthServiceServer(grpcServer, authServer)
 
-	log.Printf("server is listening @ %s\n", listener.Addr().String())
+	fmt.Printf("server is listening @ %s\n", listener.Addr().String())
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatal(err)
 	}

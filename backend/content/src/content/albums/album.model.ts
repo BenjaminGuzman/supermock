@@ -13,7 +13,7 @@ export class Album {
 	@Field({ nullable: true })
 	link?: string;
 
-	@Field({ description: "URL to deezer's cover image", nullable: true })
+	@Field({ description: "URL to Deezer's cover image", nullable: true })
 	cover?: string;
 
 	@Field(() => Artist)

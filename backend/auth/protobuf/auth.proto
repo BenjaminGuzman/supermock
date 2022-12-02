@@ -4,7 +4,7 @@ package auth;
 
 option go_package = "./auth;authpb";
 
-enum DecodeStatus {
+enum VerificationStatus {
   VALID = 0;
   EXPIRED = 1;
   INVALID = 2;
@@ -21,14 +21,17 @@ message JWT {
   string jwt = 1;
 }
 
-message DecodedJWT {
-  DecodeStatus status = 1;
+message JWTVerification {
+  VerificationStatus status = 1;
   string userId = 2;
 }
 
-service Auth {
+service AuthService {
   rpc createJWT(UserId) returns (JWT) {}
 
-  // Decode and verify the JWT
-  rpc decodeJWT(JWT) returns (DecodedJWT) {}
+  // Verify and decode the JWT
+  rpc verifyJWT(JWT) returns (JWTVerification) {}
+
+  // TODO add health check method
+  // rpc healthCheck() returns (bool) {}
 }

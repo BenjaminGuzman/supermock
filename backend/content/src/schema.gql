@@ -15,7 +15,7 @@ type Album {
   title: String!
   link: String
 
-  """URL to deezer's cover image"""
+  """URL to Deezer's cover image"""
   cover: String
   artist: Artist!
   tracks: [Track!]!
@@ -25,6 +25,8 @@ type Artist {
   id: Int!
   name: String!
   link: String
+
+  """URL to Deezer's artist picture"""
   picture: String
   nAlbums: Int
   nFans: Int

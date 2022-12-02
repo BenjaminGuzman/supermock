@@ -4,7 +4,7 @@ import * as Joi from "joi";
 export enum Gender {
 	MALE = 0,
 	FEMALE = 1,
-	RATHER_NOT_SAY = 2
+	RATHER_NOT_SAY = 2,
 }
 
 registerEnumType(Gender, {

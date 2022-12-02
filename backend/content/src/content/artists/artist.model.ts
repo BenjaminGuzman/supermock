@@ -12,7 +12,10 @@ export class Artist {
 	@Field({ nullable: true })
 	link?: string;
 
-	@Field({ nullable: true })
+	@Field({
+		description: "URL to Deezer's artist picture",
+		nullable: true,
+	})
 	picture?: string;
 
 	@Field(() => Int, { nullable: true })

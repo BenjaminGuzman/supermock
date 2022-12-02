@@ -1,0 +1,46 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type TrackInCart {
+  id: Int!
+  title: String!
+  link: String
+  preview: String
+  price: String!
+  dateAdded: String!
+}
+
+type AlbumInCart {
+  id: Int!
+  title: String!
+
+  """URL to deezer's cover image"""
+  cover: String
+  tracksInCart: [TrackInCart!]!
+  subtotal: String!
+}
+
+type ArtistInCart {
+  id: Int!
+  name: String!
+  picture: String
+  albumsInCart: [AlbumInCart!]!
+  subtotal: String!
+}
+
+type Cart {
+  id: ID!
+  total: String!
+  artistsInCart: [ArtistInCart!]!
+}
+
+type Query {
+  cart: [Cart!]!
+}
+
+type Mutation {
+  addTracks(tracksId: [ID!]!): Int!
+  addAlbums(albumsId: [ID!]!): Int!
+  addArtists(artistsId: [ID!]!): Int!
+}

@@ -14,7 +14,7 @@ type jwtPayload struct {
 }
 
 type AuthServer struct {
-	authpb.UnimplementedAuthServer
+	authpb.UnimplementedAuthServiceServer
 	secret []byte
 	algo   jwt.SigningMethod
 }
@@ -34,7 +34,7 @@ func (server *AuthServer) CreateJWT(ctx context.Context, userId *authpb.UserId) 
 	return &authpb.JWT{Jwt: signedToken}, nil
 }
 
-func (server *AuthServer) DecodeJWT(ctx context.Context, token *authpb.JWT) (*authpb.DecodedJWT, error) {
+func (server *AuthServer) DecodeJWT(ctx context.Context, token *authpb.JWT) (*authpb.JWTVerification, error) {
 	parsedToken, err := jwt.ParseWithClaims(
 		token.Jwt,
 		&jwtPayload{},
@@ -53,10 +53,10 @@ func (server *AuthServer) DecodeJWT(ctx context.Context, token *authpb.JWT) (*au
 	}
 
 	if parsedToken.Valid {
-		return &authpb.DecodedJWT{UserId: claims.UserId, Status: authpb.DecodeStatus_VALID}, nil
+		return &authpb.JWTVerification{UserId: claims.UserId, Status: authpb.VerificationStatus_VALID}, nil
 	} else if errors.Is(err, jwt.ErrTokenExpired) {
-		return &authpb.DecodedJWT{UserId: claims.UserId, Status: authpb.DecodeStatus_EXPIRED}, nil
+		return &authpb.JWTVerification{UserId: claims.UserId, Status: authpb.VerificationStatus_EXPIRED}, nil
 	} else {
-		return &authpb.DecodedJWT{UserId: claims.UserId, Status: authpb.DecodeStatus_INVALID}, nil
+		return &authpb.JWTVerification{UserId: claims.UserId, Status: authpb.VerificationStatus_INVALID}, nil
 	}
 }

@@ -13,7 +13,10 @@ export class AlbumEntity {
 	@Column("varchar", { nullable: true })
 	link: string;
 
-	@Column("varchar", { nullable: true, comment: "URL to deezer's cover image" })
+	@Column("varchar", {
+		nullable: true,
+		comment: "URL to Deezer's cover image",
+	})
 	cover: string;
 
 	@ManyToOne(() => ArtistEntity, (artist) => artist.albums)

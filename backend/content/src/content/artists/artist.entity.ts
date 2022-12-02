@@ -12,7 +12,10 @@ export class ArtistEntity {
 	@Column("varchar", { nullable: true })
 	link: string;
 
-	@Column("varchar", { nullable: true })
+	@Column("varchar", {
+		nullable: true,
+		comment: "URL to Deezer's artist picture",
+	})
 	picture: string;
 
 	@Column("int", { nullable: true, name: "n_albums" })
