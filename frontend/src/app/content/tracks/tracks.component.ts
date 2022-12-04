@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from "@angular/common";
 import {Apollo, gql} from "apollo-angular";
 import {Subscription} from "rxjs";
-import {NavItem} from "../header/header.component";
+import {NavItem} from "../../utils/header/header.component";
 import {Track} from "./track/track";
 import {Album} from "../albums/album/album";
 import {Artist} from "../artists/artist/artist";

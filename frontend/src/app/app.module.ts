@@ -13,15 +13,15 @@ import {ReactiveFormsModule} from "@angular/forms";
 import {IndexComponent} from './index/index.component';
 import {GraphQLModule} from './graphql.module';
 import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
-import {MatSelectModule} from "@angular/material/select";
 import {ForbiddenComponent} from './forbidden/forbidden.component';
 import {AuthInterceptor} from "./auth.interceptor";
+import {MatSelectModule} from "@angular/material/select";
 
 @NgModule({
   declarations: [
     AppComponent,
     IndexComponent,
-    ForbiddenComponent
+    ForbiddenComponent,
   ],
   imports: [
     BrowserModule,
@@ -37,7 +37,8 @@ import {AuthInterceptor} from "./auth.interceptor";
     HttpClientModule,
     MatSelectModule
   ],
-  providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }],
+  providers: [{provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true}],
+  exports: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -8,13 +8,13 @@ import {AlbumComponent} from './albums/album/album.component';
 import {TracksComponent} from './tracks/tracks.component';
 import {TrackComponent} from './tracks/track/track.component';
 import {GraphQLModule} from "./graphql.module";
-import {HeaderComponent} from './header/header.component';
-import {MatToolbarModule} from "@angular/material/toolbar";
 import {MatCardModule} from "@angular/material/card";
 import {MatButtonModule} from "@angular/material/button";
 import {MatInputModule} from "@angular/material/input";
-import {MatIconModule} from "@angular/material/icon";
 import {SearchBarComponent} from './search-bar/search-bar.component';
+import {UtilsModule} from "../utils/utils.module";
+import {MatSelectModule} from "@angular/material/select";
+import {MatIconModule} from "@angular/material/icon";
 import {MatTooltipModule} from "@angular/material/tooltip";
 
 
@@ -26,19 +26,19 @@ import {MatTooltipModule} from "@angular/material/tooltip";
     AlbumComponent,
     TracksComponent,
     TrackComponent,
-    HeaderComponent,
     SearchBarComponent,
   ],
   imports: [
     CommonModule,
     ContentRoutingModule,
     GraphQLModule,
-    MatToolbarModule,
+    MatSelectModule,
+    MatIconModule,
+    MatTooltipModule,
     MatCardModule,
     MatButtonModule,
     MatInputModule,
-    MatIconModule,
-    MatTooltipModule
+    UtilsModule,
   ]
 })
 export class ContentModule {

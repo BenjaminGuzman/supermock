@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import {AbstractControl, FormControl, FormGroup, Validators} from "@angular/forms";
 import {Apollo, gql} from "apollo-angular";
 import {Subscription} from "rxjs";
@@ -12,7 +20,13 @@ import {Router} from "@angular/router";
   styleUrls: ['./index.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class IndexComponent implements OnInit {
+export class IndexComponent implements OnInit, AfterViewInit {
+  @ViewChild("loginWrapper")
+  loginWrapper: ElementRef | undefined;
+
+  @ViewChild("registrationWrapper")
+  registrationWrapper: ElementRef | undefined;
+
   registerForm: FormGroup;
   loginForm: FormGroup;
 
@@ -101,6 +115,36 @@ export class IndexComponent implements OnInit {
   ngOnInit() {
     if (this.jwtService.jwt)
       this.router.navigateByUrl("/content/artists");
+  }
+
+  ngAfterViewInit() {
+    const username = "tester";
+    const password = "tester123456";
+
+    this.loginWrapper?.nativeElement.addEventListener("keyup", (e: KeyboardEvent) => {
+      // ctrl + ` will fill the form
+      if (e.ctrlKey && e.key === "`") {
+        this.loginControls.username.setValue(username);
+        this.loginControls.password.setValue(password);
+      }
+    }, false);
+
+    this.registrationWrapper?.nativeElement.addEventListener("keyup", (e: KeyboardEvent) => {
+      // ctrl + ` will fill the form
+      if (e.ctrlKey && e.key === "`") {
+        const iDate = new Date();
+        iDate.setMonth(6);
+        iDate.setDate(15);
+        iDate.setFullYear(2001);
+        this.registerControls.dob.setValue(iDate);
+        this.registerControls.password.setValue(password);
+        this.registerControls.passwordConfirmation.setValue(password);
+        this.registerControls.email.setValue("supertester@supertesting.com");
+        this.registerControls.firstName.setValue("Super Lewis");
+        this.registerControls.lastName.setValue("Gauss");
+        this.registerControls.username.setValue(username);
+      }
+    }, false);
   }
 
   onLoginSubmit() {
