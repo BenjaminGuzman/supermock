@@ -1,4 +1,5 @@
 import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
+import { HydratedDocument } from "mongoose";
 
 @ObjectType()
 export class TrackInCart {
@@ -58,7 +59,7 @@ export class ArtistInCart {
 }
 
 @ObjectType()
-export class Cart {
+export class GQLCart {
 	@Field(() => ID)
 	id: string;
 

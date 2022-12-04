@@ -11,9 +11,13 @@ import { ContentService } from "./content.service";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { CartResolver } from "./cart/cart.resolver";
 import { MongooseModule } from "@nestjs/mongoose";
+import { CartMongo, CartSchema } from "./cart/cart.schema";
 
 @Module({
 	imports: [
+		MongooseModule.forFeature([
+			{ name: CartMongo.name, schema: CartSchema },
+		]),
 		MongooseModule.forRootAsync({
 			imports: [ConfigModule],
 			inject: [ConfigService],

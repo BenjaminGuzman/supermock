@@ -29,14 +29,14 @@ type ArtistInCart {
   subtotal: String!
 }
 
-type Cart {
+type GQLCart {
   id: ID!
   total: String!
   artistsInCart: [ArtistInCart!]!
 }
 
 type Query {
-  cart: [Cart!]!
+  cart: [GQLCart!]!
 }
 
 type Mutation {
