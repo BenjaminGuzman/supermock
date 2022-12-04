@@ -10,39 +10,56 @@ import { CartService } from "./cart.service";
 import { ContentService } from "./content.service";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { CartResolver } from "./cart/cart.resolver";
+import { MongooseModule } from "@nestjs/mongoose";
 
 @Module({
 	imports: [
-		ClientsModule.register([
-			{
-				name: "AUTH_PACKAGE",
+		MongooseModule.forRootAsync({
+			imports: [ConfigModule],
+			inject: [ConfigService],
+			useFactory: async (config: ConfigService) => {
+				// prettier-ignore
+				const connString = `mongodb://${config.get("MONGODB_USER")}:${config.get("MONGODB_PASSWORD")}@${config.get("MONGODB_HOST")}:${config.get("MONGODB_PORT")}/${config.get("MONGODB_DATABASE")}`;
+				// console.log(connString);
+				return { uri: connString };
+			},
+		}),
+		// prettier-ignore
+		ClientsModule.registerAsync([{
+			name: "AUTH_PACKAGE",
+			imports: [ConfigModule],
+			inject: [ConfigService],
+			useFactory: async (config: ConfigService) => ({
 				transport: Transport.GRPC,
 				options: {
 					package: "auth",
 					protoPath: path.join(__dirname, "auth/auth.proto"),
-				},
-			},
-		]),
+					url: `${config.get("AUTH_HOST")}:${config.get("AUTH_PORT")}`
+				}
+			}),
+		}]),
 		ConfigModule.forRoot({
 			validationSchema: Joi.object({
-				NODE_ENV: Joi.string().valid(
-					"development",
-					"production",
-					"test",
-				),
-				PORT: Joi.number().port(),
-				BIND_IP: Joi.string(),
-				MONGODB_HOST: Joi.string(),
-				MONGODB_PORT: Joi.number(),
-				MONGODB_USERNAME: Joi.string(),
-				MONGODB_PASSWORD: Joi.string(),
-				MONGODB_DATABASE: Joi.string(),
-				PSQL_HOST: Joi.string(),
-				PSQL_PORT: Joi.number(),
-				PSQL_USERNAME: Joi.string(),
-				PSQL_DATABASE: Joi.string(),
-				JWT_SECRET: Joi.string(),
-				JWT_EXPIRATION: Joi.string(),
+				NODE_ENV: Joi.string()
+					.default("production")
+					.valid("development", "production", "test"),
+				PORT: Joi.number().port().required(),
+				BIND_IP: Joi.string().default("127.0.0.1"),
+				MONGODB_HOST: Joi.string().required(),
+				MONGODB_PORT: Joi.number().required(),
+				MONGODB_USER: Joi.string().required(),
+				MONGODB_PASSWORD: Joi.string().required(),
+				MONGODB_DATABASE: Joi.string().required(),
+				PSQL_HOST: Joi.string().required(),
+				PSQL_PORT: Joi.number().required(),
+				PSQL_USERNAME: Joi.string().required(),
+				PSQL_DATABASE: Joi.string().required(),
+				AUTH_HOST: Joi.string()
+					.required()
+					.description("Auth microservice host"),
+				AUTH_PORT: Joi.string()
+					.required()
+					.description("Auth microservice port"),
 			}),
 		}),
 		GraphQLModule.forRootAsync<MercuriusDriverConfig>({
