@@ -21,6 +21,16 @@ services:
       - Attaching to webmock-.*
     stdin: sudo-password.txt # to avoid having your password in a plain text file, simply run "sudo echo" or something to store the password in cache
 
+  - name: MongoDB
+    start: sudo --stdin docker compose -f docker-compose-mongo.yml up
+    aliases:
+      - mongo
+    color: 0x00ff00
+    startedPatterns:
+      - Waiting for connections
+      - Attaching to webmock-.*
+    stdin: sudo-password.txt
+
   - name: Users
     start: cd backend/users && npm run start:dev
     aliases:
@@ -78,6 +88,7 @@ groups:
       - database
     services:
       - postgres
+      - mongo
     dependencies:
       - systemd-docker
 
