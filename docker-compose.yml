@@ -34,9 +34,14 @@ services:
     image: postgres
     restart: on-failure
     volumes:
-      - "./db/001-db-init.sh:/docker-entrypoint-initdb.d/001-db-init.sh"
-      - "./db/002-ddl.sql:/docker-entrypoint-initdb.d/002-ddl.sql"
+      - "./postgres/001-db-init.sh:/docker-entrypoint-initdb.d/001-db-init.sh"
+      - "./postgres/002-ddl.sql:/docker-entrypoint-initdb.d/002-ddl.sql"
     environment:
       - "POSTGRES_PASSWORD=pass"
 
-  # TODO add MongoDB
+  mongo:
+    image: mongo
+    restart: on-failure
+    volumes:
+      - "./mongo/001-users.js:/docker-entrypoint-initdb.d/001-users.js"
+    command: --auth

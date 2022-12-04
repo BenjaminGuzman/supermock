@@ -6,6 +6,9 @@ services:
     startedPatterns:
       - "active \\(running\\)" # microstart searches for REGEXes, not string. Thus, we need to escape the parenthesis
     stdin: sudo-password.txt # to avoid having your password in a plain text file, simply run "sudo echo" or something to store the password in cache
+    aliases:
+      - systemctl-docker
+      - systemd-docker
 
   - name: PostgreSQL
     start: sudo --stdin docker compose -f docker-compose-psql.yml up # run microstart with sudo or this will break (but see comment below)
@@ -15,6 +18,7 @@ services:
     color: 0x00ff00
     startedPatterns:
       - database system is ready to accept connections
+      - Attaching to webmock-.*
     stdin: sudo-password.txt # to avoid having your password in a plain text file, simply run "sudo echo" or something to store the password in cache
 
   - name: Users
@@ -24,6 +28,7 @@ services:
     color: 0xff00ff
     startedPatterns:
       - Nest application successfully started
+    timeout: 1
 
   - name: Content
     aliases:
@@ -32,6 +37,14 @@ services:
     color: 0x0000ff
     startedPatterns:
       - Nest application successfully started
+
+  - name: Auth
+    aliases:
+      - auth
+    start: cd backend/auth && ./auth
+    color: 0x00fff0
+    startedPatterns:
+      - server is listening
 
   - name: Frontend
     aliases:
@@ -56,6 +69,7 @@ groups:
     services:
       - content
       - users
+      - auth
     dependencies:
       - database
 

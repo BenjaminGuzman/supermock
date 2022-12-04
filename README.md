@@ -75,6 +75,17 @@ If you need to add HTTPS, you can follow the instructions to do so for version 1
 If you want to run the project locally you'll need to spin up the angular server (described in Frontend section) and 
 all the backend microservices (described in Backend section)
 
+### Databases
+
+All the database init files are stored in [mongo](mongo) and [postgres](postgres).
+
+If you want to change a user, password, privileges or whatever, you can do it inside the configuration files provided
+in those directories.
+
+Even though v2 is intended to be more professional, security configurations for database are a little bit neglected
+just for sake of simplicity (e.g. users are database administrators, user-password is used as authentication method).
+But remember **this is a mock app** and you should <u>take security seriously in real-world project</u>.
+
 ### Backend
 
 In order to run all backend microservices you need to execute `npm run start` (or `npm run start:dev`) from within each
