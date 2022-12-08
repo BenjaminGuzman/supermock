@@ -5,7 +5,8 @@
 export const environment = {
   production: false,
   usersUrl: "http://127.0.0.1:4000/v2/users/graphql",
-  contentUrl: "http://127.0.0.1:5000/v2/content/graphql"
+  contentUrl: "http://127.0.0.1:5000/v2/content/graphql",
+  cartUrl: "http://127.0.0.1:3000/v2/cart/graphql"
 };
 
 /*

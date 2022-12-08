@@ -61,7 +61,8 @@ import { CartMongo, CartSchema } from "./cart/cart.schema";
 				AUTH_HOST: Joi.string()
 					.required()
 					.description("Auth microservice host"),
-				AUTH_PORT: Joi.string()
+				AUTH_PORT: Joi.number()
+					.port()
 					.required()
 					.description("Auth microservice port"),
 			}),
@@ -88,6 +89,7 @@ import { CartMongo, CartSchema } from "./cart/cart.schema";
 					};
 					return formatted;
 				},
+				graphiql: true,
 				playground: true, // leave it as true as it is a mock app. config.get("NODE_ENV") !== "production"
 			}),
 		}),

@@ -98,6 +98,15 @@ Note: if you don't want to set up a PostgreSQL database in your machine, you cou
 **Note**: If you want to **easily start** everything in development mode, simply use
 [Microstart](https://github.com/BenjaminGuzman/microstart). Check [`microstart.yml`](microstart.yml)
 
+**Why there is no gateway?**
+
+For production mode, nginx serves as gateway/reverse proxy.
+
+However, it was not really considered during the architecture design phase just to keep things simple.
+
+In a real-world project you may want to use a gateway and probably use 
+[GraphQL Federation](https://www.apollographql.com/docs/federation) or something similar.
+
 ### Frontend
 
 Simply run `npm run start` from within the [`frontend`](frontend) directory

@@ -21,12 +21,15 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.8.0",
+    "@grpc/proto-loader": "^0.7.4",
     "@nestjs/apollo": "^10.0.22",
     "@nestjs/common": "^8.4.7",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^8.4.7",
     "@nestjs/graphql": "^10.0.22",
     "@nestjs/jwt": "^8.0.1",
+    "@nestjs/microservices": "^8.4.7",
     "@nestjs/platform-fastify": "^8.4.7",
     "@nestjs/typeorm": "^8.1.4",
     "apollo-server-fastify": "^3.10.2",

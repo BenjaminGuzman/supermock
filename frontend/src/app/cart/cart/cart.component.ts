@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import {Apollo, gql} from "apollo-angular";
+import {Subscription} from "rxjs";
 
 @Component({
   selector: 'app-cart',
@@ -7,9 +9,30 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CartComponent implements OnInit {
 
-  constructor() { }
+  constructor(private apollo: Apollo) { }
 
   ngOnInit(): void {
+    const subscription: Subscription = this.apollo.query({
+      query: gql`query {
+        cart {
+          id
+          total
+          artistsInCart {
+            id
+            name
+            picture
+            albumsInCart {
+              id
+            }
+            subtotal
+          }
+        }
+      }`
+    }).subscribe({
+      next: (res) => console.log(res),
+      error: err => console.error(err),
+      complete: () => subscription.unsubscribe()
+    })
   }
 
 }

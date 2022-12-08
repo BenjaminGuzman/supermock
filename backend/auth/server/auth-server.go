@@ -34,7 +34,7 @@ func (server *AuthServer) CreateJWT(ctx context.Context, userId *authpb.UserId) 
 	return &authpb.JWT{Jwt: signedToken}, nil
 }
 
-func (server *AuthServer) DecodeJWT(ctx context.Context, token *authpb.JWT) (*authpb.JWTVerification, error) {
+func (server *AuthServer) VerifyJWT(ctx context.Context, token *authpb.JWT) (*authpb.JWTVerification, error) {
 	parsedToken, err := jwt.ParseWithClaims(
 		token.Jwt,
 		&jwtPayload{},

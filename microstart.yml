@@ -44,7 +44,16 @@ services:
     aliases:
       - content
     start: cd backend/content && npm run start:dev
-    color: 0x0000ff
+    coilor: 0x00ff0f
+    startedPatterns:
+      - Nest application successfully started
+
+  - name: Cart
+    aliases:
+      - cart
+      - shopping-cart
+    start: cd backend/cart && npm run start:dev
+    color: 0x00ff0f
     startedPatterns:
       - Nest application successfully started
 
@@ -80,6 +89,7 @@ groups:
       - content
       - users
       - auth
+      - cart
     dependencies:
       - database
 

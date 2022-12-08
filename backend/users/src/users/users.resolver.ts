@@ -1,5 +1,16 @@
-import { BadRequestException, ForbiddenException, InternalServerErrorException } from "@nestjs/common";
-import { Gender, loginJoi, registrationJoi, User, UserRegistrationInput } from "./user.model";
+import {
+	BadRequestException,
+	ForbiddenException,
+	InternalServerErrorException,
+	UseGuards,
+} from "@nestjs/common";
+import {
+	Gender,
+	loginJoi,
+	registrationJoi,
+	User,
+	UserRegistrationInput,
+} from "./user.model";
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./user.entity";
@@ -7,8 +18,10 @@ import { Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { JWTPayload } from "../JWTPayload";
+import { AuthGuard } from "../auth/auth.guard";
 
 @Resolver(() => User)
+@UseGuards(AuthGuard)
 export class UsersResolver {
 	static readonly BCRYPT_ROUNDS = 10;
 
@@ -16,16 +29,20 @@ export class UsersResolver {
 		@InjectRepository(UserEntity)
 		private usersRepo: Repository<UserEntity>,
 		private jwtService: JwtService,
-	) {
-	}
+	) {}
 
 	@Mutation(() => User)
-	async registerUser(@Args("userData") userData: UserRegistrationInput): Promise<User> {
+	async registerUser(
+		@Args("userData") userData: UserRegistrationInput,
+	): Promise<User> {
 		const validationResult = registrationJoi.validate(userData);
 		if (validationResult.error)
 			throw new BadRequestException(validationResult, "Body is invalid");
 
-		const passwordPromise = bcrypt.hash(userData.password, UsersResolver.BCRYPT_ROUNDS);
+		const passwordPromise = bcrypt.hash(
+			userData.password,
+			UsersResolver.BCRYPT_ROUNDS,
+		);
 
 		const user = new UserEntity();
 		user.dob = new Date(userData.dob);
@@ -57,13 +74,22 @@ export class UsersResolver {
 		}
 
 		try {
-			return UsersResolver.typeormUser2GQL(await this.usersRepo.save(user));
+			return UsersResolver.typeormUser2GQL(
+				await this.usersRepo.save(user),
+			);
 		} catch (e) {
-			if (e.code === "23505") // handle unique constraint violation
-				throw new BadRequestException(null, "Username or email already registered");
+			if (e.code === "23505")
+				// handle unique constraint violation
+				throw new BadRequestException(
+					null,
+					"Username or email already registered",
+				);
 
 			console.error("Error saving user", e);
-			throw new InternalServerErrorException(null, "Error while registering the user");
+			throw new InternalServerErrorException(
+				null,
+				"Error while registering the user",
+			);
 		}
 	}
 
@@ -79,7 +105,8 @@ export class UsersResolver {
 		// get the user by username or email
 		let user: UserEntity | null;
 		try {
-			user = await this.usersRepo.createQueryBuilder()
+			user = await this.usersRepo
+				.createQueryBuilder()
 				.where("username=:username OR email=:username", {
 					username: username,
 				})

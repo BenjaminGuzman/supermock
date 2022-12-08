@@ -15,12 +15,13 @@ export class CartResolver {
 		@InjectModel(CartMongo.name) private cartModel: Model<CartDocument>,
 	) {}
 
-	@Query(() => [GQLCart])
+	@Query(() => GQLCart)
 	async cart(
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	): Promise<GQLCart> {
 		const userId = jwtPayload.userId;
 		const cart = await this.cartModel.findOne({ userId: userId });
+		console.log(cart);
 
 		if (!cart) return null;
 		return this.mongoCart2GQL(cart);

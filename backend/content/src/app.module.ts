@@ -11,23 +11,21 @@ import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { GraphQLModule } from "@nestjs/graphql";
 import { GraphQLError, GraphQLFormattedError } from "graphql/error";
 import { ContentModule } from "./content/content.module";
-import { JwtAuthGuard } from "./auth.guard";
-import { APP_GUARD } from "@nestjs/core";
-import { JwtStrategy } from "./JWTStrategy";
 
 @Module({
 	imports: [
 		ConfigModule.forRoot({
 			validationSchema: Joi.object({
-				NODE_ENV: Joi.string().valid("development", "production", "test"),
-				PORT: Joi.number().port(),
-				BIND_IP: Joi.string(),
-				DB_HOST: Joi.string(),
-				DB_PORT: Joi.number(),
-				DB_USERNAME: Joi.string(),
-				DB_PASSWORD: Joi.string(),
-				DB_DATABASE: Joi.string(),
-				JWT_SECRET: Joi.string(),
+				NODE_ENV: Joi.string()
+					.valid("development", "production", "test")
+					.default("production"),
+				PORT: Joi.number().port().required(),
+				BIND_IP: Joi.string().required(),
+				DB_HOST: Joi.string().required(),
+				DB_PORT: Joi.number().required(),
+				DB_USERNAME: Joi.string().required(),
+				DB_PASSWORD: Joi.string().required(),
+				DB_DATABASE: Joi.string().required(),
 			}),
 		}),
 		TypeOrmModule.forRootAsync({
@@ -80,10 +78,7 @@ import { JwtStrategy } from "./JWTStrategy";
 		ContentModule,
 	],
 	controllers: [],
-	providers: [{
-		provide: APP_GUARD,
-		useClass: JwtAuthGuard,
-	}, JwtStrategy],
+	providers: [],
 })
 export class AppModule {
 }

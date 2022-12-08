@@ -11,25 +11,29 @@ import { UserEntity } from "./users/user.entity";
 import { JwtModule } from "@nestjs/jwt";
 import * as Joi from "joi";
 import { GraphQLError, GraphQLFormattedError } from "graphql/index";
+import { ClientsModule, Transport } from "@nestjs/microservices";
 
 @Module({
 	imports: [
 		ConfigModule.forRoot({
 			validationSchema: Joi.object({
-				NODE_ENV: Joi.string().valid(
-					"development",
-					"production",
-					"test",
-				),
-				PORT: Joi.number().port(),
-				BIND_IP: Joi.string(),
-				DB_HOST: Joi.string(),
-				DB_PORT: Joi.number(),
-				DB_USERNAME: Joi.string(),
-				DB_PASSWORD: Joi.string(),
-				DB_DATABASE: Joi.string(),
-				JWT_SECRET: Joi.string(),
-				JWT_EXPIRATION: Joi.string(),
+				NODE_ENV: Joi.string()
+					.valid("development", "production", "test")
+					.required(),
+				PORT: Joi.number().port().required(),
+				BIND_IP: Joi.string().required(),
+				DB_HOST: Joi.string().required(),
+				DB_PORT: Joi.number().required(),
+				DB_USERNAME: Joi.string().required(),
+				DB_PASSWORD: Joi.string().required(),
+				DB_DATABASE: Joi.string().required(),
+				AUTH_HOST: Joi.string()
+					.required()
+					.description("Auth microservice host"),
+				AUTH_PORT: Joi.number()
+					.port()
+					.required()
+					.description("Auth microservice port"),
 			}),
 		}),
 		TypeOrmModule.forRootAsync({
@@ -82,6 +86,20 @@ import { GraphQLError, GraphQLFormattedError } from "graphql/index";
 				playground: true, // leave it as true as it is a mock app. config.get("NODE_ENV") !== "production"
 			}),
 		}),
+		// prettier-ignore
+		ClientsModule.registerAsync([{
+			name: "AUTH_PACKAGE",
+			imports: [ConfigModule],
+			inject: [ConfigService],
+			useFactory: async (config: ConfigService) => ({
+				transport: Transport.GRPC,
+				options: {
+					package: "auth",
+					protoPath: path.join(__dirname, "auth/auth.proto"),
+					url: `${config.get("AUTH_HOST")}:${config.get("AUTH_PORT")}`
+				}
+			}),
+		}]),
 	],
 	controllers: [AppController],
 	providers: [AppService, UsersResolver],

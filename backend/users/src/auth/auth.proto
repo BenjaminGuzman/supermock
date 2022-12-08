@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "./auth;authpb";
+
+enum VerificationStatus {
+  VALID = 0;
+  EXPIRED = 1;
+  INVALID = 2;
+}
+
+message UserId {
+  // it is a string but DON'T abuse
+  // DON'T try to enter a stringified JSON here
+  // JWT payload is meant to contain the least amount of data possible
+  string userId = 1;
+}
+
+message JWT {
+  string jwt = 1;
+}
+
+message JWTVerification {
+  VerificationStatus status = 1;
+  string userId = 2;
+}
+
+service AuthService {
+  rpc createJWT(UserId) returns (JWT) {}
+
+  // Verify and decode the JWT
+  rpc verifyJWT(JWT) returns (JWTVerification) {}
+}
