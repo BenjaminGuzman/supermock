@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
+	"time"
 )
 
 type jwtPayload struct {
@@ -15,16 +16,29 @@ type jwtPayload struct {
 
 type AuthServer struct {
 	authpb.UnimplementedAuthServiceServer
-	secret []byte
-	algo   jwt.SigningMethod
+	secret   []byte
+	algo     jwt.SigningMethod
+	duration time.Duration
 }
 
 func NewAuthServer(secret []byte) *AuthServer {
-	return &AuthServer{algo: jwt.SigningMethodHS512, secret: secret}
+	return &AuthServer{
+		algo:     jwt.SigningMethodHS512,
+		secret:   secret,
+		duration: 15 * 24 * time.Hour, // 15 days
+	}
 }
 
 func (server *AuthServer) CreateJWT(ctx context.Context, userId *authpb.UserId) (*authpb.JWT, error) {
-	token := jwt.NewWithClaims(server.algo, jwtPayload{UserId: userId.GetUserId()})
+	token := jwt.NewWithClaims(server.algo, jwtPayload{
+		userId.GetUserId(),
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(server.duration)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    "auth service",
+		},
+	})
 
 	signedToken, err := token.SignedString(server.secret)
 	if err != nil {
