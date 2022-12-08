@@ -15,7 +15,7 @@ export class CartResolver {
 		@InjectModel(CartMongo.name) private cartModel: Model<CartDocument>,
 	) {}
 
-	@Query(() => GQLCart)
+	@Query(() => GQLCart, { nullable: true })
 	async cart(
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	): Promise<GQLCart> {

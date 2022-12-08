@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {Apollo, gql} from "apollo-angular";
 import {Subscription} from "rxjs";
+import {NavItem} from "../../utils/header/header.component";
 
 @Component({
   selector: 'app-cart',
@@ -8,31 +9,85 @@ import {Subscription} from "rxjs";
   styleUrls: ['./cart.component.scss']
 })
 export class CartComponent implements OnInit {
+  public navigation: NavItem[] = [{name: "Shopping cart", url: "/cart"}];
+  public isLoading: boolean = true;
+
+  public cart?: Cart | null;
 
   constructor(private apollo: Apollo) { }
 
   ngOnInit(): void {
-    const subscription: Subscription = this.apollo.query({
+    const subscription: Subscription = this.apollo.query<{cart: Cart | null}>({
       query: gql`query {
         cart {
-          id
           total
           artistsInCart {
             id
             name
             picture
+            subtotal
             albumsInCart {
               id
+              title
+              cover
+              subtotal
+              tracksInCart {
+                id
+                title
+                link
+                preview
+                price
+                dateAdded
+              }
             }
-            subtotal
           }
         }
       }`
     }).subscribe({
-      next: (res) => console.log(res),
-      error: err => console.error(err),
+      next: (res) => {
+        this.isLoading = false;
+        subscription.unsubscribe();
+        if (!res.data.cart)
+          return;
+        console.log(res);
+      },
+      error: err => {
+        this.isLoading = false;
+        subscription.unsubscribe();
+        console.error(err);
+      },
       complete: () => subscription.unsubscribe()
     })
   }
 
+}
+
+export interface TrackInCart {
+  id: number;
+  title: string;
+  link?: string;
+  preview?: string;
+  price: string;
+  dateAdded: string;
+}
+
+export interface AlbumInCart {
+  id: number;
+  title: string;
+  cover?: string;
+  tracksInCart: TrackInCart[];
+  subtotal: string;
+}
+
+export interface ArtistInCart {
+  id: number;
+  name: string;
+  picture?: string;
+  albumsInCart: AlbumInCart[];
+  subtotal: string;
+}
+
+export interface Cart {
+  total: string;
+  artistsInCart: ArtistInCart[];
 }
