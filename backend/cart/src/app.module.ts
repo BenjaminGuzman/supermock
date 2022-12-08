@@ -38,7 +38,10 @@ import { CartMongo, CartSchema } from "./cart/cart.schema";
 				options: {
 					package: "auth",
 					protoPath: path.join(__dirname, "auth/auth.proto"),
-					url: `${config.get("AUTH_HOST")}:${config.get("AUTH_PORT")}`
+					url: `${config.get("AUTH_HOST")}:${config.get("AUTH_PORT")}`,
+					loader: {
+						defaults: true
+					}
 				}
 			}),
 		}]),
@@ -65,6 +68,7 @@ import { CartMongo, CartSchema } from "./cart/cart.schema";
 					.port()
 					.required()
 					.description("Auth microservice port"),
+				ALLOWED_ORIGINS: Joi.string().required(),
 			}),
 		}),
 		GraphQLModule.forRootAsync<MercuriusDriverConfig>({

@@ -61,7 +61,7 @@ func (server *AuthServer) VerifyJWT(ctx context.Context, token *authpb.JWT) (*au
 		return nil, err
 	}
 
-	claims, ok := parsedToken.Claims.(jwtPayload)
+	claims, ok := parsedToken.Claims.(*jwtPayload)
 	if !ok {
 		return nil, fmt.Errorf("invalid payload")
 	}

@@ -15,10 +15,7 @@ async function bootstrap() {
 
 	const config = app.get<ConfigService>(ConfigService);
 	app.enableCors({
-		origin:
-			config.get("NODE_ENV") === "production"
-				? "https://test.benjaminguzman.dev"
-				: "*",
+		origin: config.get("ALLOWED_ORIGINS"),
 	});
 	await app.listen(config.get("PORT"), config.get("BIND_IP"));
 }

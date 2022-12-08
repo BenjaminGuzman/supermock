@@ -1,6 +1,7 @@
 import {
 	BadRequestException,
 	ForbiddenException,
+	Inject,
 	InternalServerErrorException,
 	UseGuards,
 } from "@nestjs/common";
@@ -16,22 +17,27 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./user.entity";
 import { Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
-import { JwtService } from "@nestjs/jwt";
 import { JWTPayload } from "../JWTPayload";
 import { AuthGuard } from "../auth/auth.guard";
+import { ClientGrpc } from "@nestjs/microservices";
+import { AuthService } from "../auth/auth-service";
 
 @Resolver(() => User)
-@UseGuards(AuthGuard)
 export class UsersResolver {
 	static readonly BCRYPT_ROUNDS = 10;
+	private authService: AuthService;
 
 	constructor(
 		@InjectRepository(UserEntity)
 		private usersRepo: Repository<UserEntity>,
-		private jwtService: JwtService,
-	) {}
+		@Inject("AUTH_PACKAGE") private grpcClient: ClientGrpc,
+	) {
+		this.authService =
+			this.grpcClient.getService<AuthService>("AuthService");
+	}
 
 	@Mutation(() => User)
+	@UseGuards(AuthGuard)
 	async registerUser(
 		@Args("userData") userData: UserRegistrationInput,
 	): Promise<User> {
@@ -134,7 +140,17 @@ export class UsersResolver {
 
 		const jwtPayload: JWTPayload = { userId: user.id };
 
-		return this.jwtService.sign(jwtPayload);
+		return new Promise((resolve, reject) => {
+			this.authService.createJWT(jwtPayload).subscribe({
+				next: (res) => {
+					return resolve(res.jwt);
+				},
+				error: (e: Error) => {
+					console.error(e);
+					reject();
+				},
+			});
+		});
 	}
 
 	private static typeormUser2GQL(user: UserEntity): User {

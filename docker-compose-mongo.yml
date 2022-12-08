@@ -6,4 +6,8 @@ services:
       - "127.0.0.1:27017:27017"
     volumes:
       - "./mongo/001-users.js:/docker-entrypoint-initdb.d/001-users.js"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=r00tedandpwndph0n3
+      - MONGO_INITDB_ROOT_PASSWORD=n0m3l0s3Imlevitating
+      - MONGO_INITDB_DATABASE=test
     command: --auth

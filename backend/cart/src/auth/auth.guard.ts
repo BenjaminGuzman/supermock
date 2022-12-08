@@ -34,7 +34,7 @@ export class AuthGuard implements CanActivate {
 		return new Promise<boolean>((resolve, reject) => {
 			this.authService.verifyJWT({ jwt: jwt }).subscribe({
 				next: (decodeResult) => {
-					if (decodeResult.status == VerificationStatus.VALID)
+					if (decodeResult.status === VerificationStatus.VALID)
 						return resolve(true);
 					return resolve(false);
 				},

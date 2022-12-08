@@ -26,6 +26,7 @@ import { ContentModule } from "./content/content.module";
 				DB_USERNAME: Joi.string().required(),
 				DB_PASSWORD: Joi.string().required(),
 				DB_DATABASE: Joi.string().required(),
+				ALLOWED_ORIGINS: Joi.string().required(),
 			}),
 		}),
 		TypeOrmModule.forRootAsync({
@@ -58,6 +59,9 @@ import { ContentModule } from "./content/content.module";
 				autoSchemaFile: path.join(process.cwd(), "src/schema.gql"),
 				useGlobalPrefix: true,
 				cache: "bounded",
+				cors: {
+					origin: config.get<string>("ALLOWED_ORIGINS"),
+				},
 				formatError: (error: GraphQLError) => {
 					let message: string = error.message;
 					if (error.originalError instanceof HttpException)

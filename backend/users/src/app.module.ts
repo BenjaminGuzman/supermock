@@ -8,7 +8,6 @@ import { UsersResolver } from "./users/users.resolver";
 import * as path from "path";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { UserEntity } from "./users/user.entity";
-import { JwtModule } from "@nestjs/jwt";
 import * as Joi from "joi";
 import { GraphQLError, GraphQLFormattedError } from "graphql/index";
 import { ClientsModule, Transport } from "@nestjs/microservices";
@@ -34,6 +33,7 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
 					.port()
 					.required()
 					.description("Auth microservice port"),
+				ALLOWED_ORIGINS: Joi.string().required(),
 			}),
 		}),
 		TypeOrmModule.forRootAsync({
@@ -51,16 +51,6 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
 			}),
 		}),
 		TypeOrmModule.forFeature([UserEntity]),
-		JwtModule.registerAsync({
-			imports: [ConfigModule],
-			inject: [ConfigService],
-			useFactory: async (config: ConfigService) => ({
-				secret: config.get<string>("JWT_SECRET"),
-				signOptions: {
-					expiresIn: config.get<string>("JWT_EXPIRATION"),
-				},
-			}),
-		}),
 		GraphQLModule.forRootAsync<ApolloDriverConfig>({
 			driver: ApolloDriver,
 			imports: [ConfigModule],
@@ -69,6 +59,9 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
 				debug: config.get<string>("NODE_ENV") !== "production",
 				autoSchemaFile: path.join(process.cwd(), "src/schema.gql"),
 				useGlobalPrefix: true,
+				cors: {
+					origin: config.get<string>("ALLOWED_ORIGINS"),
+				},
 				formatError: (error: GraphQLError) => {
 					let message: string = error.message;
 					if (error.originalError instanceof HttpException)
@@ -96,7 +89,7 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
 				options: {
 					package: "auth",
 					protoPath: path.join(__dirname, "auth/auth.proto"),
-					url: `${config.get("AUTH_HOST")}:${config.get("AUTH_PORT")}`
+					url: `${config.get("AUTH_HOST")}:${config.get("AUTH_PORT")}`,
 				}
 			}),
 		}]),
