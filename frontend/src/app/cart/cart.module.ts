@@ -6,10 +6,15 @@ import {GraphQLModule} from "./graphql.module";
 import {UtilsModule} from "../utils/utils.module";
 import {MatIconModule} from "@angular/material/icon";
 import {MatButtonModule} from "@angular/material/button";
+import { ArtistsInCartComponent } from './artists-in-cart/artists-in-cart.component';
+import { ArtistInCartComponent } from './artists-in-cart/artist-in-cart/artist-in-cart.component';
+import {MatExpansionModule} from "@angular/material/expansion";
 
 @NgModule({
   declarations: [
-    CartComponent
+    CartComponent,
+    ArtistsInCartComponent,
+    ArtistInCartComponent
   ],
   imports: [
     CommonModule,
@@ -17,7 +22,8 @@ import {MatButtonModule} from "@angular/material/button";
     GraphQLModule,
     UtilsModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    MatExpansionModule
   ]
 })
 export class CartModule { }

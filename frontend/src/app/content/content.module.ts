@@ -28,6 +28,9 @@ import {MatTooltipModule} from "@angular/material/tooltip";
     TrackComponent,
     SearchBarComponent,
   ],
+  exports: [
+    ArtistsComponent
+  ],
   imports: [
     CommonModule,
     ContentRoutingModule,

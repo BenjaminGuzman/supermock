@@ -48,3 +48,7 @@ db/employees_schema.sql
 
 # tailwind auto generated
 public/css/mock.css
+
+# diagrams
+**/*.dia
+**/*.dia~

@@ -2,7 +2,7 @@
 
 ## Architecture
 
-![Architecture](docs/arch.png)
+![Architecture](docs/arch.jpg)
 
 ## Deploy
 
