@@ -14,6 +14,6 @@ export class Track {
 	@Field({ nullable: true })
 	preview?: string;
 
-	@Field(() => Int)
-	price: number;
+	@Field()
+	price: string;
 }

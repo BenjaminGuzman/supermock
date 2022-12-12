@@ -7,7 +7,7 @@ type Track {
   title: String!
   link: String
   preview: String
-  price: Int!
+  price: String!
 }
 
 type Album {
@@ -34,6 +34,7 @@ type Artist {
 }
 
 type Query {
+  tracksById(ids: [ID!]!): [Track!]!
   artistSearch(search: String): [Artist!]!
   artistById(id: ID!): Artist
   albumById(id: ID!): Album

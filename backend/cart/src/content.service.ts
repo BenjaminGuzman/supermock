@@ -8,12 +8,35 @@ export class ContentService {
 		this.contentUrl = config.get<string>("CONTENT_URL");
 	}
 
-	public getTracks(tracksIds: number[]): Promise<Track[]> {
-		// TODO make GraphQL call
-		return Promise.resolve([]);
+	public async getTracks(tracksIds: string[]): Promise<Track[]> {
+		// Don't add try-catch or recovery procedures,
+		// let's just 🤞 and hope the internal services work fine
+		const res = await fetch(this.contentUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+				"User-Agent": "content microservice",
+			},
+			body: JSON.stringify({
+				query: `query tracksById($ids: [ID!]!) {
+					tracksById(ids: $ids) {
+						id
+						title
+						link
+						preview
+						price
+					}
+				}`,
+				variables: {
+					ids: tracksIds,
+				},
+			}),
+		}).then((r) => r.json());
+		return res.data.tracksById;
 	}
 
-	public getAlbumsArtists(albumsIds: number[]): Promise<Artist[]> {
+	public getAlbumsArtists(albumsIds: string[]): Promise<Artist[]> {
 		// TODO make GraphQL call
 		return Promise.resolve([]);
 	}
@@ -26,6 +49,7 @@ export interface Track {
 	title: string;
 	link?: string;
 	preview?: string;
+	price: string;
 }
 
 export interface Album {

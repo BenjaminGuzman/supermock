@@ -2,17 +2,20 @@ import { Args, ID, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { GQLCart } from "./cart.model";
 import { ExtractedJWTPayload } from "../auth/extracted-jwt-payload.decorator";
 import { JWTPayload } from "../auth/jwt-payload";
-import { UseGuards } from "@nestjs/common";
+import { InternalServerErrorException, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../auth/auth.guard";
 import { InjectModel } from "@nestjs/mongoose";
 import { CartDocument, CartMongo } from "./cart.schema";
 import { Model } from "mongoose";
+import { ContentService, Track } from "../content.service";
+import Decimal from "decimal.js";
 
 @Resolver(() => GQLCart)
 @UseGuards(AuthGuard)
 export class CartResolver {
 	constructor(
 		@InjectModel(CartMongo.name) private cartModel: Model<CartDocument>,
+		private contentService: ContentService
 	) {}
 
 	@Query(() => GQLCart, { nullable: true })
@@ -32,28 +35,46 @@ export class CartResolver {
 			"Add tracks to the user cart. Returns the number of tracks added",
 	})
 	async addTracks(
-		@Args("tracksIds", { type: () => [ID], nullable: false }) tracksIds,
+		@Args("ids", { type: () => [ID], nullable: false })
+		ids: string[],
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	) {
-		/*const userId = jwtPayload.userId;
-		this.cartModel.findOneAndUpdate({
-			userId: userId
-		}, {})*/
+		let tracks: Track[] = [];
+		try {
+			tracks = await this.contentService.getTracks(ids);
+		} catch (e) {
+			throw new InternalServerErrorException();
+		}
+		if (tracks.length === 0) return 0; // probably we were given invalid ids
+
+		const subtotal: Decimal = tracks
+			.map((track: Track) => track.price)
+			.map((price: string) => new Decimal(price))
+			.reduce((prev: Decimal, curr: Decimal) => prev.add(curr));
+
+		const userId = jwtPayload.userId;
+		const cart = await this.cartModel.findOne({
+			userId: userId,
+		});
+		let upsertQuery: Record<any, any> = {};
+		if (!cart) {
+			upsertQuery = {$set: {}};
+		}
 		return 0;
 	}
 
-	@Mutation(() => Int)
+	@Mutation(() => Int, { description: "Add all album's tracks to cart" })
 	async addAlbums(
-		@Args("albumsId", { type: () => [ID], nullable: false }) albumsId,
+		@Args("ids", { type: () => [ID], nullable: false }) ids,
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	) {
 		// TODO add all album's tracks to cart
 		return 0;
 	}
 
-	@Mutation(() => Int)
+	@Mutation(() => Int, { description: "Add all artist's tracks to cart" })
 	async addArtists(
-		@Args("artistsId", { type: () => [ID], nullable: false }) artistsId,
+		@Args("ids", { type: () => [ID], nullable: false }) ids,
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	) {
 		// TODO add all artist's tracks to cart

@@ -107,6 +107,13 @@ However, it was not really considered during the architecture design phase just 
 In a real-world project you may want to use a gateway and probably use 
 [GraphQL Federation](https://www.apollographql.com/docs/federation) or something similar.
 
+A GraphQL gateway would also be very useful for the cart microservice because it could simply store the tracks ids and
+to query cart information the gateway queries both microservices, cart (to get the track ids in the shopping cart) and
+content (to get the actual data for the tracks).
+
+If you want to learn and practice, you could add a gateway anyway, remember this is **open source** and its sole
+purpose is to **learn and practice**.
+
 ### Frontend
 
 Simply run `npm run start` from within the [`frontend`](frontend) directory

@@ -11,28 +11,10 @@ type TrackInCart {
   dateAdded: String!
 }
 
-type AlbumInCart {
-  id: Int!
-  title: String!
-
-  """URL to deezer's cover image"""
-  cover: String
-  tracksInCart: [TrackInCart!]!
-  subtotal: String!
-}
-
-type ArtistInCart {
-  id: Int!
-  name: String!
-  picture: String
-  albumsInCart: [AlbumInCart!]!
-  subtotal: String!
-}
-
 type Cart {
   id: ID!
   total: String!
-  artistsInCart: [ArtistInCart!]!
+  tracks: [TrackInCart!]!
 }
 
 type Query {
@@ -41,7 +23,11 @@ type Query {
 
 type Mutation {
   """Add tracks to the user cart. Returns the number of tracks added"""
-  addTracks(tracksIds: [ID!]!): Int!
-  addAlbums(albumsId: [ID!]!): Int!
-  addArtists(artistsId: [ID!]!): Int!
+  addTracks(ids: [ID!]!): Int!
+
+  """Add all album's tracks to cart"""
+  addAlbums(ids: [ID!]!): Int!
+
+  """Add all artist's tracks to cart"""
+  addArtists(ids: [ID!]!): Int!
 }

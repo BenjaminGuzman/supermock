@@ -1,24 +1,11 @@
-import {
-	BadRequestException,
-	ForbiddenException,
-	Inject,
-	InternalServerErrorException,
-	UseGuards,
-} from "@nestjs/common";
-import {
-	Gender,
-	loginJoi,
-	registrationJoi,
-	User,
-	UserRegistrationInput,
-} from "./user.model";
+import { BadRequestException, ForbiddenException, Inject, InternalServerErrorException } from "@nestjs/common";
+import { Gender, loginJoi, registrationJoi, User, UserRegistrationInput } from "./user.model";
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./user.entity";
 import { Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
 import { JWTPayload } from "../JWTPayload";
-import { AuthGuard } from "../auth/auth.guard";
 import { ClientGrpc } from "@nestjs/microservices";
 import { AuthService } from "../auth/auth-service";
 
@@ -37,7 +24,6 @@ export class UsersResolver {
 	}
 
 	@Mutation(() => User)
-	@UseGuards(AuthGuard)
 	async registerUser(
 		@Args("userData") userData: UserRegistrationInput,
 	): Promise<User> {

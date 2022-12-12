@@ -21,42 +21,6 @@ export class TrackInCart {
 	dateAdded: string;
 }
 
-@ObjectType()
-export class AlbumInCart {
-	@Field(() => Int)
-	id: number;
-
-	@Field()
-	title: string;
-
-	@Field({ description: "URL to deezer's cover image", nullable: true })
-	cover?: string;
-
-	@Field(() => [TrackInCart])
-	tracksInCart: TrackInCart[];
-
-	@Field()
-	subtotal: string;
-}
-
-@ObjectType()
-export class ArtistInCart {
-	@Field(() => Int)
-	id: number;
-
-	@Field()
-	name: string;
-
-	@Field({ nullable: true })
-	picture?: string;
-
-	@Field(() => [AlbumInCart])
-	albumsInCart: AlbumInCart[];
-
-	@Field()
-	subtotal: string;
-}
-
 @ObjectType("Cart")
 export class GQLCart {
 	@Field(() => ID)
@@ -65,6 +29,6 @@ export class GQLCart {
 	@Field()
 	total: string;
 
-	@Field(() => [ArtistInCart])
-	artistsInCart: ArtistInCart[];
+	@Field(() => [TrackInCart])
+	tracks: TrackInCart[];
 }
