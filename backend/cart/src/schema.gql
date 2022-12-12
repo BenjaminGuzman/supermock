@@ -40,7 +40,8 @@ type Query {
 }
 
 type Mutation {
-  addTracks(tracksId: [ID!]!): Int!
+  """Add tracks to the user cart. Returns the number of tracks added"""
+  addTracks(tracksIds: [ID!]!): Int!
   addAlbums(albumsId: [ID!]!): Int!
   addArtists(artistsId: [ID!]!): Int!
 }

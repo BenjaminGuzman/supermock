@@ -21,18 +21,24 @@ export class CartResolver {
 	): Promise<GQLCart> {
 		const userId = jwtPayload.userId;
 		const cart = await this.cartModel.findOne({ userId: userId });
-		console.log(cart);
+		// console.log(cart);
 
 		if (!cart) return null;
 		return this.mongoCart2GQL(cart);
 	}
 
-	@Mutation(() => Int)
+	@Mutation(() => Int, {
+		description:
+			"Add tracks to the user cart. Returns the number of tracks added",
+	})
 	async addTracks(
-		@Args("tracksId", { type: () => [ID], nullable: false }) tracksId,
+		@Args("tracksIds", { type: () => [ID], nullable: false }) tracksIds,
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	) {
-		// TODO add track to cart
+		/*const userId = jwtPayload.userId;
+		this.cartModel.findOneAndUpdate({
+			userId: userId
+		}, {})*/
 		return 0;
 	}
 

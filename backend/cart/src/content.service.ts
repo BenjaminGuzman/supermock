@@ -1,8 +1,19 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class ContentService {
-	public getAlbumsArtists(albumsIds): Promise<Artist[]> {
+	private contentUrl: string;
+	constructor(config: ConfigService) {
+		this.contentUrl = config.get<string>("CONTENT_URL");
+	}
+
+	public getTracks(tracksIds: number[]): Promise<Track[]> {
+		// TODO make GraphQL call
+		return Promise.resolve([]);
+	}
+
+	public getAlbumsArtists(albumsIds: number[]): Promise<Artist[]> {
 		// TODO make GraphQL call
 		return Promise.resolve([]);
 	}
