@@ -6,7 +6,15 @@
 
 ## Deploy
 
-**Run on local machine**
+**Execute on server**
+
+Create directories
+
+```bash
+mkdir -p ~/backend/{users,content,auth,cart} ~/frontend
+```
+
+**Execute on local machine**
 
 1. You should create `.env.prod` files for each microservice (inside [`backend`](backend). See `.env.example` files included for each microservice).
 
@@ -17,16 +25,18 @@
 scp -r db/ user@testing.example.com:~/v2/db/
 scp docker-compose.yml user@testing.example.com:~/v2
 scp backend/users/.env.prod user@testing.example.com:~/v2/backend/users/.env.prod 
-scp backend/content/.env.prod user@testing.example.com:~/v2/backend/content/.env.prod 
+scp backend/content/.env.prod user@testing.example.com:~/v2/backend/content/.env.prod
+scp backend/cart/.env.prod user@testing.example.com:~/v2/backend/cart/.env.prod
+scp backend/auth/.env.prod user@testing.example.com:~/v2/backend/auth/.env.prod
 ```
 
 3. Build and copy frontend
 
 ```bash
-cd frontend && npm run build && scp -r dist/ user@testing.example.com:/var/www/html && cd ..
+cd frontend && npm run build && scp -r dist/ user@testing.example.com:~/frontend && cd ..
 ```
 
-**Run on server**
+**Execute on server**
 
 1. Make NGINX serve the static content
 
@@ -37,19 +47,25 @@ server {
     // ... your server config ...
 
     error_page 404 /; # let angular handle 404
-    root /var/www/html/dist/webmock;
+    root /home/<your username>/frontend/dist/webmock;
 }
 ```
 
 Notify selinux.
 
-```chcon -R -t httpd_sys_content_t /var/www/html/dist/webmock```
+```chcon -R -t httpd_sys_content_t /home/<your username>/frontend/dist/webmock```
 
 2. Make NGINX act as gateway (reverse proxy)
 
 ```
 server {
     // ... your server config ...
+    
+    location /v2/cart {
+        proxy_pass              http://127.0.0.1:3000;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
     location /v2/users {
         proxy_pass              http://127.0.0.1:4000;
         proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
