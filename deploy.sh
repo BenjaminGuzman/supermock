@@ -280,14 +280,17 @@ fi
 echo Reloading nginx...
 sudo systemctl reload nginx
 
+# TODO include selinux notification
+
 echo Done.
 echo
 echo "*** Next steps ***"
 echo "1. Build frontend on local machine and copy dist files to server"
 echo -en "\033[94m"
-echo "     cd frontend && npm run build && scp -r dist/ $(whoami)@$DOMAIN:$WORKING_DIR/webmock/frontend"
+echo "     cd frontend && sed -i 's|https://test.benjaminguzman.dev|https://$DOMAIN|g' src/environments/environment.prod.ts && npm run build && scp -r dist/ $(whoami)@$DOMAIN:$WORKING_DIR/webmock/frontend"
 echo -en "\033[0m"
 echo "     (👆 run on local machine)"
+echo "     (If you're not using TLS, replace 'https' with 'http' in sed command)"
 echo 
 echo "2. (Optional) Add TLS certificate using certbot and Let's Encrypt"
 echo "   Useful links:"
@@ -296,6 +299,12 @@ echo
 echo "3. Start backend containers"
 echo -en "\033[94m"
 echo "     sudo docker compose up -d"
+echo -en "\033[0m"
+echo
+echo "Tip: If nginx shows 403 after executing step 1, then it's probably because"
+echo "nginx doesn't have access to $WORKING_DIR. Hot fix:"
+echo -en "\033[94m"
+echo "  sudo chmod o+x $WORKING_DIR"
 echo -en "\033[0m"
 
 echo -n "Would you like to execute step 3 now"
