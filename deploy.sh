@@ -285,7 +285,7 @@ echo
 echo "*** Next steps ***"
 echo "1. Build frontend on local machine and copy dist files to server"
 echo -e "\033[94m"
-echo "     cd frontend && npm run build && scp -r dist/ user@$DOMAIN:$WORKING_DIR/webmock/frontend"
+echo "     cd frontend && npm run build && scp -r dist/ $(whoami)@$DOMAIN:$WORKING_DIR/webmock/frontend"
 echo -e "\033[0m"
 echo "     (👆 run on local machine)"
 echo 
