@@ -1,6 +1,6 @@
 services:
   auth:
-    image: guzmanbenjamin/webmock-content:v2.0-alpha
+    image: guzmanbenjamin/webmock-auth:v2.0-alpha
     restart: on-failure
     ports:
       - "127.0.0.1:9000:9000"
