@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function __ask_binary {
+function __ask_yesno {
 	while true; do
 		read -p " (Y/n)? " -r ans
 		if [[ "$ans" == "Y" ]]; then
@@ -20,13 +20,11 @@ function __check_dep {
 
 	echo -n "Checking $DEP_NAME is installed... "
 
-	$DEP_CHECK_CMD > /dev/null 2>&1
-	if [[ "$?" -eq "0" ]]; then
+	if $DEP_CHECK_CMD > /dev/null 2>&1; then
 		echo "✅" # dependency is indeed installed
 	else
 		echo -ne "❌\n\t$DEP_NAME is not installed. Would you like to install it"
-		__ask_binary
-		if [[ "$?" -eq "0" ]]; then
+		if __ask_yesno; then
 			echo -e "Installing $DEP_NAME with command \033[97m$DEP_INSTALLATION_CMD\033[0m"
 			sh -c "$DEP_INSTALLATION_CMD"
 		else
@@ -50,6 +48,7 @@ function __download {
 		wget --quiet --show-progress --output-document "$LOCAL_FILE" "$ROOT_DOWNLOAD_URL/$REMOTE_FILE"
 	else
 		echo "Sorry can't handle tool $TOOL"
+		echo "This is likely to be a programming error. Sorry!"
 		exit 1
 	fi
 }
@@ -57,13 +56,13 @@ function __download {
 function help {
 	echo Deploy web mock app for testing
 	echo
-	echo Syntax: $0 -d domain [-w directory] [-g]
+	echo "Syntax: $0 -d domain [-w directory] [-g]"
 	echo Options:
-	echo " -h		Display this help message and exit"
-	echo " -d domain	Domain name, e.g. test.benjaminguzman.dev"
-	echo " -w directory	Working directory. This directory will store the git repo"
+	echo " -h               Display this help message and exit"
+	echo " -d domain        Domain name, e.g. test.benjaminguzman.dev"
+	echo " -w directory     Working directory. This directory will store the git repo"
 	echo "                  Default: $HOME"
-	echo " -g		Use git instead of downloading files with curl or wget"
+	echo " -g               Use git instead of downloading files with curl or wget"
 }
 
 ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
@@ -85,8 +84,8 @@ while getopts ":hd:w:g" opt; do
 		g)
 			USE_GIT="t"
 			;;
-		?)
-			echo "Invalid option $opt"
+		\?)
+			echo "Invalid option '$opt'"
 			exit;;
 	esac
 done
@@ -107,8 +106,7 @@ echo "*** Detecting distribution ***"
 DISTROS=(gentoo ubuntu debian fedora centos rocky)
 DISTRO=""
 
-which lsb-release > /dev/null 2>&1
-if [[ "$?" -eq "0" ]]; then # detect distro with lsb-release
+if which lsb-release > /dev/null 2>&1; then # detect distro with lsb-release
 	LSB_RELEASE_OUT=$(lsb-release --id --short)
 	for distro in "${DISTROS[@]}"; do
 		occurrences=$(grep --ignore-case "$distro" --count <<< "$LSB_RELEASE_OUT")
@@ -153,9 +151,8 @@ if [[ "$DISTRO" == "gentoo" ]]; then
 	echo "Detected that you're on Gentoo Linux"
 	echo "Because of that it is recommended to execute the steps manually"
 	echo "so you have granular control of the deploy."
-	echo -n "Would you like to proceed anyway? "
-	__ask_binary
-	if [[ "$?" -ne "0" ]]; then
+	echo -n "Would you like to proceed anyway"
+	if ! __ask_yesno; then
 		exit 0
 	fi
 
@@ -174,7 +171,7 @@ fi
 
 echo -e "\n*** Downloading configuration files ***"
 MICROSERVICES=(auth cart content users)
-cd "$WORKING_DIR"
+cd "$WORKING_DIR" || exit 1
 if [[ "$USE_GIT" == "t" ]]; then
 	echo Cloning repository using git
 
@@ -190,17 +187,16 @@ if [[ "$USE_GIT" == "t" ]]; then
 	fi
 
 	git clone git@github.com:BenjaminGuzman/webmock.git
-	cd webmock
+	cd webmock || exit 1
 else
 	# if using git, webmock directory is created inside working directory
 	# keep that directory structure for consistency
 	mkdir webmock > /dev/null 2>&1
-	cd webmock
+	cd webmock || exit 1
 
 	tool=wget
 	for possible_tool in wget curl; do
-		which $possible_tool > /dev/null 2>&1
-		if [[ "$?" -eq "0" ]]; then
+		if which $possible_tool > /dev/null 2>&1; then
 			tool=$possible_tool
 			break
 		fi
@@ -209,13 +205,13 @@ else
 	echo Downloading files using $tool
 	mkdir -p backend/{users,content,auth,cart} frontend mongo postgres > /dev/null 2>&1
 
-	FILES=("mongo/001-users.js" "postgres/001-db-init.sh" "postgres/002-ddl.sql" "docker-compose.yml" "backend/auth/random-secret.sh")
 	# .env files
 	for microservice in "${MICROSERVICES[@]}"; do
 		__download "$tool" "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
 	done
 
 	# Other files
+	FILES=("mongo/001-users.js" "postgres/001-db-init.sh" "postgres/002-ddl.sql" "docker-compose.yml" "backend/auth/random-secret.sh")
 	for file in "${FILES[@]}"; do
 		__download "$tool" "$file"
 	done
@@ -225,15 +221,15 @@ echo
 echo "*** Creating random secret for auth microservice ***"
 echo "Executing script backend/auth/random-secret.sh..."
 curr_work_dir=$(pwd)
-cd backend/auth
+cd backend/auth || exit 1
 chmod u+x random-secret.sh
 ./random-secret.sh > /dev/null 2>&1
-cd "$curr_work_dir"
+cd "$curr_work_dir" || exit 1
 
 echo -e "\n*** Changing domain name to $DOMAIN ***"
 for microservice in "${MICROSERVICES[@]}"; do
 	sed -i "s|test.benjaminguzman.dev|$DOMAIN|g" "backend/$microservice/.env.prod"
-	echo backend/$microservice/.env.prod
+	echo "backend/$microservice/.env.prod"
 done
 
 echo
@@ -241,8 +237,7 @@ echo "*** Configuring nginx ***"
 NGINX_CONFIG_FILE="/etc/nginx/conf.d/$DOMAIN.conf"
 if [[ -f "$NGINX_CONFIG_FILE" ]]; then
 	echo -n "$NGINX_CONFIG_FILE already exists. Overwrite (.bak file will be created)"
-	__ask_binary
-	if [[ "$?" -eq "0" ]]; then # Answer was "Y"
+	if __ask_yesno; then
 		sudo cp "$NGINX_CONFIG_FILE" "$NGINX_CONFIG_FILE.bak"
 	else
 		exit 0
@@ -295,7 +290,7 @@ echo "     cd frontend && sed -i 's|https://test.benjaminguzman.dev|https://$DOM
 echo -en "\033[0m"
 echo "     (👆 run on local machine)"
 echo "     (If you're not using TLS, replace 'https' with 'http' in sed command)"
-echo 
+echo
 echo "2. (Optional) Add TLS certificate using certbot and Let's Encrypt"
 echo "   Useful links:"
 echo "    https://certbot.eff.org/"
@@ -316,8 +311,7 @@ echo "  sudo chcon -R -t httpd_sys_content_t '$WORKING_DIR'"
 echo -en "\033[0m"
 
 echo -n "Would you like to execute step 3 now"
-__ask_binary
-if [[ "$?" -eq "0" ]]; then
+if __ask_yesno; then
 	echo
 	echo "*** Starting containers ***"
 	sudo docker compose up -d
