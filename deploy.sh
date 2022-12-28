@@ -276,6 +276,9 @@ fi
 echo Reloading nginx...
 sudo systemctl reload nginx
 
+echo -e "\n*** Starting containers ***"
+sudo docker compose up -d
+
 echo Done.
 echo
 echo "*** Next steps ***"
@@ -286,3 +289,5 @@ echo
 echo "2. (Optional) Add TLS certificate using certbot and Let's Encrypt"
 echo "   Useful links:"
 echo "    https://certbot.eff.org/"
+echo
+echo "Remember to use docker compose to manage the (already running) containers"
