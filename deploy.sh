@@ -257,17 +257,17 @@ server {
 
 	location /v2/cart {
 		proxy_pass		http://127.0.0.1:3000;
-		proxy_set_header	X-Forwarded-For \$proxy_add_x_forwarded_for;
+		proxy_set_header	X-Forwarded-For \\\$proxy_add_x_forwarded_for;
 	}
 
 	location /v2/users {
 		proxy_pass		http://127.0.0.1:4000;
-		proxy_set_header	X-Forwarded-For \$proxy_add_x_forwarded_for;
+		proxy_set_header	X-Forwarded-For \\\$proxy_add_x_forwarded_for;
 	}
 
 	location /v2/content {
 		proxy_pass		http://127.0.0.1:5000;
-		proxy_set_header	X-Forwarded-For \$proxy_add_x_forwarded_for;
+		proxy_set_header	X-Forwarded-For \\\$proxy_add_x_forwarded_for;
 	}
 }
 EOF"
@@ -284,9 +284,9 @@ echo Done.
 echo
 echo "*** Next steps ***"
 echo "1. Build frontend on local machine and copy dist files to server"
-echo -e "\033[94m"
+echo -en "\033[94m"
 echo "     cd frontend && npm run build && scp -r dist/ $(whoami)@$DOMAIN:$WORKING_DIR/webmock/frontend"
-echo -e "\033[0m"
+echo -en "\033[0m"
 echo "     (👆 run on local machine)"
 echo 
 echo "2. (Optional) Add TLS certificate using certbot and Let's Encrypt"
@@ -294,9 +294,9 @@ echo "   Useful links:"
 echo "    https://certbot.eff.org/"
 echo
 echo "3. Start backend containers"
-echo -e "\033[94m"
+echo -en "\033[94m"
 echo "     sudo docker compose up -d"
-echo -e "\033[0m"
+echo -en "\033[0m"
 
 echo -n "Would you like to execute step 3 now"
 __ask_binary
