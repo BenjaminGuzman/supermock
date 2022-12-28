@@ -81,7 +81,8 @@ elif [[ -z "$WORKING_DIR" ]]; then
 	exit 1
 fi
 
-echo -e "\n*** Detecting distribution ***"
+echo
+echo "*** Detecting distribution ***"
 DISTROS=(gentoo ubuntu debian fedora centos rocky)
 DISTRO=""
 
@@ -123,7 +124,8 @@ fi
 
 echo "Distribution detected: $DISTRO"
 
-echo -e "\n*** Checking dependencies ***"
+echo
+echo "*** Checking dependencies ***"
 if [[ "$DISTRO" == "gentoo" ]]; then
 	# Gentoo system could be running openrc instead of systemd
 	# In which case proceeding with installation would be useless as it'll fail
@@ -212,7 +214,8 @@ else
 	fi
 fi
 
-echo -e "\n*** Creating random secret for auth microservice ***"
+echo
+echo "*** Creating random secret for auth microservice ***"
 echo "Executing script backend/auth/random-secret.sh..."
 curr_work_dir=$(pwd)
 cd backend/auth
@@ -226,7 +229,8 @@ for microservice in "${MICROSERVICES[@]}"; do
 	echo backend/$microservice/.env.prod
 done
 
-echo -e "\n*** Configuring nginx ***"
+echo
+echo "*** Configuring nginx ***"
 NGINX_CONFIG_FILE="/etc/nginx/conf.d/$DOMAIN.conf"
 if [[ -f "$NGINX_CONFIG_FILE" ]]; then
 	echo -n "$NGINX_CONFIG_FILE already exists. Overwrite (.bak file will be created)"
@@ -276,18 +280,28 @@ fi
 echo Reloading nginx...
 sudo systemctl reload nginx
 
-echo -e "\n*** Starting containers ***"
-sudo docker compose up -d
-
 echo Done.
 echo
 echo "*** Next steps ***"
 echo "1. Build frontend on local machine and copy dist files to server"
+echo -e "\033[94m"
 echo "     cd frontend && npm run build && scp -r dist/ user@$DOMAIN:$WORKING_DIR/webmock/frontend"
+echo -e "\033[0m"
 echo "     (👆 run on local machine)"
 echo 
 echo "2. (Optional) Add TLS certificate using certbot and Let's Encrypt"
 echo "   Useful links:"
 echo "    https://certbot.eff.org/"
 echo
-echo "Remember to use docker compose to manage the (already running) containers"
+echo "3. Start backend containers"
+echo -e "\033[94m"
+echo "     sudo docker compose up -d"
+echo -e "\033[0m"
+
+echo -n "Would you like to execute step 3 now"
+__ask_binary
+if [[ "$?" -eq "0" ]]; then
+	echo
+	echo "*** Starting containers ***"
+	sudo docker compose up -d
+fi

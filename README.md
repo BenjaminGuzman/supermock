@@ -12,14 +12,14 @@ Using curl:
 
 ```bash
 curl -o deploy.sh https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2/deploy.sh && chmod u+x deploy.sh
-./deploy.sh
+./deploy.sh -h
 ```
 
 Using wget:
 
 ```bash
 wget -O deploy.sh https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2/deploy.sh && chmod u+x deploy.sh
-./deploy.sh
+./deploy.sh -h
 ```
 
 ## Develop
