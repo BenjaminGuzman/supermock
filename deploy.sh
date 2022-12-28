@@ -35,6 +35,25 @@ function __check_dep {
 	fi
 }
 
+function __download {
+	TOOL="$1"
+	REMOTE_FILE="$2"
+	LOCAL_FILE="$3" # optional, default = REMOTE_FILE
+	if [[ -z "$LOCAL_FILE" ]]; then
+		LOCAL_FILE="$REMOTE_FILE"
+	fi
+
+	if [[ "$TOOL" == "curl" ]]; then
+		echo "$LOCAL_FILE"
+		curl --progress-bar --output "$LOCAL_FILE" "$ROOT_DOWNLOAD_URL/$REMOTE_FILE"
+	elif [[ "$TOOL" == "wget" ]]; then
+		wget --quiet --show-progress --output-document "$LOCAL_FILE" "$ROOT_DOWNLOAD_URL/$REMOTE_FILE"
+	else
+		echo "Sorry can't handle tool $TOOL"
+		exit 1
+	fi
+}
+
 function help {
 	echo Deploy web mock app for testing
 	echo
@@ -46,6 +65,8 @@ function help {
 	echo "                  Default: $HOME"
 	echo " -g		Use git instead of downloading files with curl or wget"
 }
+
+ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
 
 DOMAIN=""
 WORKING_DIR="$HOME"
@@ -178,40 +199,26 @@ else
 
 	tool=wget
 	for possible_tool in wget curl; do
-		which $possible_tool > /dev/null
+		which $possible_tool > /dev/null 2>&1
 		if [[ "$?" -eq "0" ]]; then
 			tool=$possible_tool
 			break
 		fi
 	done
 
-	echo Obtaining files via $tool
-	mkdir -p backend/{users,content,auth,cart} frontend > /dev/null 2>&1
-	
-	docker_compose_url="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2/docker-compose.yml"
-	random_secret_url="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2/backend/auth/random-secret.sh"
-	if [[ "$tool" == "curl" ]]; then
-		for microservice in "${MICROSERVICES[@]}"; do
-			url="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2/backend/$microservice/.env.example"
-			
-			echo "backend/$microservice/.env.prod"
-			curl --progress-bar --output "backend/$microservice/.env.prod" "$url"
-		done
+	echo Downloading files using $tool
+	mkdir -p backend/{users,content,auth,cart} frontend mongo postgres > /dev/null 2>&1
 
-		echo "docker-compose.yml"
-		curl --progress-bar --output docker-compose.yml "$docker_compose_url"
+	FILES=("mongo/001-users.js" "postgres/001-db-init.sh" "postgres/002-ddl.sql" "docker-compose.yml" "backend/auth/random-secret.sh")
+	# .env files
+	for microservice in "${MICROSERVICES[@]}"; do
+		__download "$tool" "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
+	done
 
-		echo "backend/auth/random-secret.sh"
-		curl --progress-bar --output "backend/auth/random-secret.sh" "$random_secret_url"
-	elif [[ "$tool" == "wget" ]]; then
-		for microservice in "${MICROSERVICES[@]}"; do
-			url="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2/backend/$microservice/.env.example"
-			wget --quiet --show-progress --output-document "backend/$microservice/.env.prod" "$url"
-		done
-
-		wget --quiet --show-progress --output-document docker-compose.yml "$docker_compose_url"
-		wget --quiet --show-progress --output-document "backend/auth/random-secret.sh" "$random_secret_url"
-	fi
+	# Other files
+	for file in "${FILES[@]}"; do
+		__download "$tool" "$file"
+	done
 fi
 
 echo
@@ -246,6 +253,7 @@ else
 	sudo chmod 0600 "$NGINX_CONFIG_FILE"
 fi
 
+NGINX_STATIC_ROOT_DIR="$WORKING_DIR/webmock/frontend/dist/webmock"
 sudo sh -c "cat > \"$NGINX_CONFIG_FILE\" <<EOF
 server {
 	listen 80 default_server;
@@ -253,7 +261,7 @@ server {
 	server_name $DOMAIN;
 
 	error_page 404 /; # let angular handle 404
-	root $WORKING_DIR/webmock/frontend/dist/webmock;
+	root $NGINX_STATIC_ROOT_DIR;
 
 	location /v2/cart {
 		proxy_pass		http://127.0.0.1:3000;
@@ -280,7 +288,8 @@ fi
 echo Reloading nginx...
 sudo systemctl reload nginx
 
-# TODO include selinux notification
+# notify SElinux (if installed)
+sudo chcon -R -t httpd_sys_content_t "$NGINX_STATIC_ROOT_DIR" > /dev/null 2>&1
 
 echo Done.
 echo
