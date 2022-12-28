@@ -253,7 +253,6 @@ else
 	sudo chmod 0600 "$NGINX_CONFIG_FILE"
 fi
 
-NGINX_STATIC_ROOT_DIR="$WORKING_DIR/webmock/frontend/dist/webmock"
 sudo sh -c "cat > \"$NGINX_CONFIG_FILE\" <<EOF
 server {
 	listen 80 default_server;
@@ -261,7 +260,7 @@ server {
 	server_name $DOMAIN;
 
 	error_page 404 /; # let angular handle 404
-	root $NGINX_STATIC_ROOT_DIR;
+	root $WORKING_DIR/webmock/frontend/dist/webmock;
 
 	location /v2/cart {
 		proxy_pass		http://127.0.0.1:3000;
@@ -288,10 +287,6 @@ fi
 echo Reloading nginx...
 sudo systemctl reload nginx
 
-# notify SElinux (if installed)
-sudo chcon -R -t httpd_sys_content_t "$NGINX_STATIC_ROOT_DIR" > /dev/null 2>&1
-
-echo Done.
 echo
 echo "*** Next steps ***"
 echo "1. Build frontend on local machine and copy dist files to server"
@@ -313,7 +308,11 @@ echo
 echo "Tip: If nginx shows 403 after executing step 1, then it's probably because"
 echo "nginx doesn't have access to $WORKING_DIR. Hot fix:"
 echo -en "\033[94m"
-echo "  sudo chmod o+x $WORKING_DIR"
+echo "  sudo chmod o+x '$WORKING_DIR'"
+echo -en "\033[0m"
+echo "or, if SElinux is installed,"
+echo -en "\033[94m"
+echo "  sudo chcon -R -t httpd_sys_content_t '$WORKING_DIR'"
 echo -en "\033[0m"
 
 echo -n "Would you like to execute step 3 now"
