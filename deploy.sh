@@ -1,8 +1,16 @@
 #!/bin/bash
 
+function __print_section {
+	SECTION_NAME="$1"
+	echo
+	echo -e "\033[94m*** $SECTION_NAME ***\033[0m"
+}
+
 function __ask_yesno {
+	PROMPT="$1"
 	while true; do
-		read -p " (Y/n)? " -r ans
+		echo -en "\033[97m$PROMPT (\033[92mY\033[0m/\033[91mn\033[97m)?\033[0m "
+		read -r ans
 		if [[ "$ans" == "Y" ]]; then
 			return 0
 		elif [[ "$ans" == "n" || "$ans" == "N" ]]; then
@@ -23,8 +31,8 @@ function __check_dep {
 	if $DEP_CHECK_CMD > /dev/null 2>&1; then
 		echo "✅" # dependency is indeed installed
 	else
-		echo -ne "❌\n\t$DEP_NAME is not installed. Would you like to install it"
-		if __ask_yesno; then
+		echo -ne "❌\n\t$DEP_NAME is not installed. "
+		if __ask_yesno "Would you like to install it"; then
 			echo -e "Installing $DEP_NAME with command \033[97m$DEP_INSTALLATION_CMD\033[0m"
 			sh -c "$DEP_INSTALLATION_CMD"
 		else
@@ -106,8 +114,7 @@ if [[ -z "$DOMAIN" ]]; then
 	exit 1
 fi
 
-echo
-echo "*** Detecting distribution ***"
+__print_section "Detecting distribution"
 DISTROS=(gentoo ubuntu debian fedora centos rocky)
 DISTRO=""
 
@@ -148,16 +155,14 @@ fi
 
 echo "Distribution detected: $DISTRO"
 
-echo
-echo "*** Checking dependencies ***"
+__print_section "Checking dependencies"
 if [[ "$DISTRO" == "gentoo" ]]; then
 	# Gentoo system could be running openrc instead of systemd
 	# In which case proceeding with installation would be useless as it'll fail
 	echo "Detected that you're on Gentoo Linux"
 	echo "Because of that it is recommended to execute the steps manually"
 	echo "so you have granular control of the deploy."
-	echo -n "Would you like to proceed anyway"
-	if ! __ask_yesno; then
+	if ! __ask_yesno "Would you like to proceed anyway"; then
 		exit 0
 	fi
 
@@ -170,7 +175,7 @@ elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
 	__check_dep docker "systemctl cat docker" "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin"
 fi
 
-echo -e "\n*** Downloading configuration files ***"
+__print_section "Downloading configuration files"
 MICROSERVICES=(auth cart content users)
 cd "$WORKING_DIR" || exit 1
 if [[ "$USE_GIT" == "t" ]]; then
@@ -203,7 +208,7 @@ else
 		fi
 	done
 
-	echo Downloading files using $tool
+	echo -e "Downloading files using \033[97m$tool\033[0m"
 	mkdir -p backend/{users,content,auth,cart} frontend mongo postgres > /dev/null 2>&1
 
 	# .env files
@@ -218,8 +223,7 @@ else
 	done
 fi
 
-echo
-echo "*** Creating random secret for auth microservice ***"
+__print_section "Creating random secret for auth microservice"
 echo "Executing script backend/auth/random-secret.sh..."
 curr_work_dir=$(pwd)
 cd backend/auth || exit 1
@@ -227,9 +231,7 @@ chmod u+x random-secret.sh
 ./random-secret.sh > /dev/null 2>&1
 cd "$curr_work_dir" || exit 1
 
-echo
-echo "*** Changing domain name to $DOMAIN ***"
-
+__print_section "Changing domain name to $DOMAIN"
 PROTOCOL="http"
 if [[ "$USE_TLS" == "t" ]]; then
 	PROTOCOL="https"
@@ -242,9 +244,7 @@ done
 
 sed -i "s|https://test.benjaminguzman.dev|$PROTOCOL://$DOMAIN|g" docker-compose.yml
 
-echo
-echo "*** Configuring nginx ***"
-
+__print_section "Configuring nginx"
 if [[ "$USE_TLS" == "t" ]]; then
 	echo "TLS is intended to be used. Nginx HTTP server will bind to port 8080"
 	sed -i 's|"80:80"|"8080:80"|g' docker-compose.yml
@@ -264,8 +264,7 @@ else
 	echo "TLS is not intended to be used. Nginx HTTP server will bind to port 80"
 fi
 
-echo
-echo "*** Next steps ***"
+__print_section "Next steps"
 echo " * (Optional) Add TLS certificate using certbot and Let's Encrypt"
 echo "     Useful links:"
 echo "       https://certbot.eff.org/"
@@ -276,10 +275,8 @@ echo "     sudo docker compose up -d"
 echo -en "\033[0m"
 echo
 
-echo -n "Would you like to start the containers now"
-if __ask_yesno; then
-	echo
-	echo "*** Starting containers ***"
+if __ask_yesno "Would you like to start the containers now"; then
+	__print_section "Starting containers"
 	sudo docker compose up -d
 fi
 
