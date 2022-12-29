@@ -56,12 +56,17 @@ function __download {
 function help {
 	echo Deploy web mock app for testing
 	echo
-	echo "Syntax: $0 -d domain [-w directory] [-g]"
+	echo "Syntax: $0 -d domain [-w directory] [-g] [-t]"
 	echo Options:
 	echo " -h               Display this help message and exit"
 	echo " -d domain        Domain name, e.g. test.benjaminguzman.dev"
 	echo " -w directory     Working directory. This directory will store the git repo"
-	echo "                  Default: $HOME"
+	echo "                    Default: $HOME"
+	echo " -t               You plan to add TLS (https)"
+	echo "                    Providing this flag will bind nginx server to 127.0.0.1:8080"
+	echo "                    instead of [::]:80 and 0.0.0.0:80, and"
+	echo "                    frontend will use https protocol instead of http."
+	echo "                    Notice however, you should configure TLS on your own."
 	echo " -g               Use git instead of downloading files with curl or wget"
 }
 
@@ -70,7 +75,8 @@ ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
 DOMAIN=""
 WORKING_DIR="$HOME"
 USE_GIT="f"
-while getopts ":hd:w:g" opt; do
+USE_TLS="f"
+while getopts ":hd:w:gt" opt; do
 	case $opt in
 		h)
 			help
@@ -84,6 +90,9 @@ while getopts ":hd:w:g" opt; do
 		g)
 			USE_GIT="t"
 			;;
+		t)
+			USE_TLS="t"
+			;;
 		\?)
 			echo "Invalid option '$opt'"
 			exit;;
@@ -93,10 +102,6 @@ done
 # Check required arguments
 if [[ -z "$DOMAIN" ]]; then
 	echo -e "\033[91mYou must provide a domain name\033[0m"
-	help
-	exit 1
-elif [[ -z "$WORKING_DIR" ]]; then
-	echo -e "\033[91mYou must provide a working directory\033[0m"
 	help
 	exit 1
 fi
@@ -156,16 +161,12 @@ if [[ "$DISTRO" == "gentoo" ]]; then
 		exit 0
 	fi
 
-	__check_dep nginx "systemctl cat nginx" "sudo emerge www-servers/nginx"
 	__check_dep docker "systemctl cat docker" "sudo emerge app-containers/docker app-containers/docker-cli"
 elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-	__check_dep nginx "systemctl cat nginx" "sudo apt-get install -y nginx"
 	__check_dep docker "systemctl cat docker" "sudo apt-get update; sudo apt-get install -y ca-certificates curl gnupg lsb-release; sudo mkdir -p /etc/apt/keyrings; curl -fsSL https://download.docker.com/linux/$DISTRO/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg; echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO  $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null; sudo apt-get update; sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin"
 elif [[ "$DISTRO" == "fedora" ]]; then
-	__check_dep nginx "systemctl cat nginx" "sudo dnf install -y nginx"
 	__check_dep docker "systemctl cat docker" "sudo dnf install -y dnf-plugins-core; sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin"
 elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
-	__check_dep nginx "systemctl cat nginx" "sudo yum install -y nginx"
 	__check_dep docker "systemctl cat docker" "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin"
 fi
 
@@ -226,91 +227,56 @@ chmod u+x random-secret.sh
 ./random-secret.sh > /dev/null 2>&1
 cd "$curr_work_dir" || exit 1
 
-echo -e "\n*** Changing domain name to $DOMAIN ***"
+echo
+echo "*** Changing domain name to $DOMAIN ***"
+
+PROTOCOL="http"
+if [[ "$USE_TLS" == "t" ]]; then
+	PROTOCOL="https"
+fi
+
 for microservice in "${MICROSERVICES[@]}"; do
-	sed -i "s|test.benjaminguzman.dev|$DOMAIN|g" "backend/$microservice/.env.prod"
+	sed -i "s|https://test.benjaminguzman.dev|$PROTOCOL://$DOMAIN|g" "backend/$microservice/.env.prod"
 	echo "backend/$microservice/.env.prod"
 done
 
+sed -i "s|https://test.benjaminguzman.dev|$PROTOCOL://$DOMAIN|g" docker-compose.yml
+
 echo
 echo "*** Configuring nginx ***"
-NGINX_CONFIG_FILE="/etc/nginx/conf.d/$DOMAIN.conf"
-if [[ -f "$NGINX_CONFIG_FILE" ]]; then
-	echo -n "$NGINX_CONFIG_FILE already exists. Overwrite (.bak file will be created)"
-	if __ask_yesno; then
-		sudo cp "$NGINX_CONFIG_FILE" "$NGINX_CONFIG_FILE.bak"
-	else
-		exit 0
+
+if [[ "$USE_TLS" == "t" ]]; then
+	echo "TLS is intended to be used. Nginx HTTP server will bind to port 8080"
+	sed -i 's|"80:80"|"8080:80"|g' docker-compose.yml
+
+	# check nginx is installed
+	# TODO: check certbot is installed?
+	if [[ "$DISTRO" == "gentoo" ]]; then
+		__check_dep nginx "systemctl cat nginx" "sudo emerge www-servers/nginx"
+	elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
+		__check_dep nginx "systemctl cat nginx" "sudo apt-get install -y nginx"
+	elif [[ "$DISTRO" == "fedora" ]]; then
+		__check_dep nginx "systemctl cat nginx" "sudo dnf install -y nginx"
+	elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
+		__check_dep nginx "systemctl cat nginx" "sudo yum install -y nginx"
 	fi
 else
-	echo "Creating configuration file $NGINX_CONFIG_FILE..."
-	sudo touch "$NGINX_CONFIG_FILE"
-	sudo chmod 0600 "$NGINX_CONFIG_FILE"
+	echo "TLS is not intended to be used. Nginx HTTP server will bind to port 80"
 fi
-
-sudo sh -c "cat > \"$NGINX_CONFIG_FILE\" <<EOF
-server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
-	server_name $DOMAIN;
-
-	error_page 404 /; # let angular handle 404
-	root $WORKING_DIR/webmock/frontend/dist/webmock;
-
-	location /v2/cart {
-		proxy_pass		http://127.0.0.1:3000;
-		proxy_set_header	X-Forwarded-For \\\$proxy_add_x_forwarded_for;
-	}
-
-	location /v2/users {
-		proxy_pass		http://127.0.0.1:4000;
-		proxy_set_header	X-Forwarded-For \\\$proxy_add_x_forwarded_for;
-	}
-
-	location /v2/content {
-		proxy_pass		http://127.0.0.1:5000;
-		proxy_set_header	X-Forwarded-For \\\$proxy_add_x_forwarded_for;
-	}
-}
-EOF"
-
-if [[ -f "/etc/nginx/sites-enabled/default" ]]; then
-	echo Deleting default HTTP server config...
-	sudo rm /etc/nginx/sites-enabled/default
-fi
-
-echo Reloading nginx...
-sudo systemctl reload nginx
 
 echo
 echo "*** Next steps ***"
-echo "1. Build frontend on local machine and copy dist files to server"
-echo -en "\033[94m"
-echo "     cd frontend && sed -i 's|https://test.benjaminguzman.dev|https://$DOMAIN|g' src/environments/environment.prod.ts && npm run build && scp -r dist/ $(whoami)@$DOMAIN:$WORKING_DIR/webmock/frontend"
-echo -en "\033[0m"
-echo "     (👆 run on local machine)"
-echo "     (If you're not using TLS, replace 'https' with 'http' in sed command)"
+echo " * (Optional) Add TLS certificate using certbot and Let's Encrypt"
+echo "     Useful links:"
+echo "       https://certbot.eff.org/"
 echo
-echo "2. (Optional) Add TLS certificate using certbot and Let's Encrypt"
-echo "   Useful links:"
-echo "    https://certbot.eff.org/"
-echo
-echo "3. Start backend containers"
+echo " * Start containers"
 echo -en "\033[94m"
 echo "     sudo docker compose up -d"
 echo -en "\033[0m"
 echo
-echo "Tip: If nginx shows 403 after executing step 1, then it's probably because"
-echo "nginx doesn't have access to $WORKING_DIR. Hot fix:"
-echo -en "\033[94m"
-echo "  sudo chmod o+x '$WORKING_DIR'"
-echo -en "\033[0m"
-echo "or, if SElinux is installed,"
-echo -en "\033[94m"
-echo "  sudo chcon -R -t httpd_sys_content_t '$WORKING_DIR'"
-echo -en "\033[0m"
 
-echo -n "Would you like to execute step 3 now"
+echo -n "Would you like to start the containers now"
 if __ask_yesno; then
 	echo
 	echo "*** Starting containers ***"
