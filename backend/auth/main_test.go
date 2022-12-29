@@ -4,9 +4,12 @@ import (
 	authpb "auth/protobuf"
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -14,6 +17,11 @@ import (
 
 var globalMutex sync.Mutex
 var serverStarted = false
+
+type jwtPayload struct {
+	UserId string `json:"userId"`
+	jwt.RegisteredClaims
+}
 
 func startServer() {
 	if serverStarted {
@@ -26,13 +34,13 @@ func startServer() {
 	globalMutex.Unlock()
 }
 
-func connect2Server() (authpb.AuthClient, *grpc.ClientConn) {
+func connect2Server() (authpb.AuthServiceClient, *grpc.ClientConn) {
 	startServer()
 	conn, err := grpc.Dial(getServerAddress(), grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("couldn't connect to server. %s", err)
 	}
-	client := authpb.NewAuthClient(conn)
+	client := authpb.NewAuthServiceClient(conn)
 	return client, conn
 }
 
@@ -42,17 +50,36 @@ func extractJWTPayload(jwt *authpb.JWT) string {
 	return payloadStr
 }
 
-func validatePayload(jwt *authpb.JWT, expectedPayload *string) bool {
+func validatePayload(jwt *authpb.JWT, expectedPayloadStr *string) (bool, string) {
 	payloadStr := extractJWTPayload(jwt)
 	decoded, err := base64.RawStdEncoding.DecodeString(payloadStr)
 	if err != nil {
 		log.Fatalf("failed to decode JWT payload. %s\n", err)
 	}
 
-	if string(decoded) == *expectedPayload {
-		return true
+	var expectedPayload jwtPayload
+	var actualPayload jwtPayload
+	if err := json.Unmarshal([]byte(*expectedPayloadStr), &expectedPayload); err != nil {
+		log.Fatalf("failed to unmarshal expected payload. %s\n", err)
 	}
-	return false
+	if err := json.Unmarshal(decoded, &actualPayload); err != nil {
+		return false, string(decoded)
+	}
+
+	// test user id custom claim is correct
+	if expectedPayload.UserId != actualPayload.UserId {
+		return false, string(decoded)
+	}
+
+	// test actual payload has some JWT claims
+	if reflect.ValueOf(actualPayload.ExpiresAt).IsZero() {
+		return false, "expires at claim is missing"
+	}
+	if reflect.ValueOf(actualPayload.IssuedAt).IsZero() {
+		return false, "issued at claim is missing"
+	}
+
+	return true, string(decoded)
 }
 
 func Test_CreateJWT(t *testing.T) {
@@ -71,12 +98,15 @@ func Test_CreateJWT(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if jwt, err := client.CreateJWT(context.Background(), &authpb.UserId{
+			token, err := client.CreateJWT(context.Background(), &authpb.UserId{
 				UserId: tt.userId,
-			}); err != nil || !validatePayload(jwt, &tt.expectedPayload) {
+			})
+			if ok, decodedPayload := validatePayload(token, &tt.expectedPayload); err != nil || !ok {
 				t.Errorf(
-					"CreateJWT() = %s, want %s (%s). possible cause: %s",
-					jwt,
+					"CreateJWT() = %s (full JWT: %s, encoded payload: %s), want %s (encoded payload: %s). possible cause: %s",
+					decodedPayload,
+					token,
+					base64.RawStdEncoding.EncodeToString([]byte(decodedPayload)),
 					tt.expectedPayload,
 					base64.RawStdEncoding.EncodeToString([]byte(tt.expectedPayload)),
 					err,

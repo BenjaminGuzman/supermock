@@ -93,7 +93,7 @@ while getopts ":hd:w:gt" opt; do
 		t)
 			USE_TLS="t"
 			;;
-		\?)
+		*)
 			echo "Invalid option '$opt'"
 			exit;;
 	esac
