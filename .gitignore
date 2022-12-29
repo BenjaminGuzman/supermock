@@ -52,3 +52,6 @@ public/css/mock.css
 # diagrams
 **/*.dia
 **/*.dia~
+
+# vim files
+**/*.swp

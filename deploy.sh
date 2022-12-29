@@ -192,8 +192,14 @@ if [[ "$USE_GIT" == "t" ]]; then
 		__check_dep git "git --help" "sudo yum install -y git"
 	fi
 
-	git clone git@github.com:BenjaminGuzman/webmock.git
+	git clone https://github.com/BenjaminGuzman/webmock.git
 	cd webmock || exit 1
+	git checkout v2 # this script is intended to be used with v2 only
+
+	# Move .env.example to .env.prod for each microservice
+	for microservice in "${MICROSERVICES[@]}"; do
+		mv "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
+	done
 else
 	# if using git, webmock directory is created inside working directory
 	# keep that directory structure for consistency
@@ -279,7 +285,6 @@ if __ask_yesno "Would you like to start the containers now"; then
 	__print_section "Starting containers"
 	sudo docker compose up -d
 fi
-
 
 # remove password from cache
 sudo -K
