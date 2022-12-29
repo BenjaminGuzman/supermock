@@ -1,9 +1,12 @@
 services:
+  # microservices don't need to export ports
+  # since all connections from gateway
+  # are done inside docker's network
   auth:
     image: guzmanbenjamin/webmock-auth:v2.0-alpha
     restart: on-failure
-    ports:
-      - "127.0.0.1:9000:9000"
+    #ports:
+    #  - "127.0.0.1:9000:9000"
     volumes:
       - "./backend/auth/.env.prod:/.env"
       - "./backend/auth/secret.txt:/secret.txt"
@@ -11,8 +14,8 @@ services:
   content:
     image: guzmanbenjamin/webmock-content:v2.0-alpha
     restart: on-failure
-    ports:
-      - "127.0.0.1:5000:3000"
+    #ports:
+    #  - "127.0.0.1:5000:3000"
     volumes:
       - "./backend/content/.env.prod:/usr/src/.env"
     links:
@@ -22,8 +25,8 @@ services:
   users:
     image: guzmanbenjamin/webmock-users:v2.0-alpha
     restart: on-failure
-    ports:
-      - "127.0.0.1:4000:3000"
+    #ports:
+    #  - "127.0.0.1:4000:3000"
     volumes:
       - "./backend/users/.env.prod:/usr/src/.env"
     links:
@@ -53,3 +56,7 @@ services:
       - "80:80"
     environment:
       - "GATEWAY_BASE_URL=https://test.benjaminguzman.dev"
+    links:
+      #- "cart:cart"
+      - "users:users"
+      - "content:content"

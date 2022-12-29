@@ -38,13 +38,20 @@ elif [[ "$VER" != v2* ]]; then
 	exit 1
 fi
 
+systemctl status docker > /dev/null 2>&1
+if [[ "$?" -eq "3" ]]; then
+	echo "Docker service is not running"
+	echo "Trying to initiate docker service"
+	sudo systemctl start docker
+fi
+
 if [[ ! -z "$2" ]]; then # build and push specific microservice
 	MICROSERVICE="$2"
 	case "$MICROSERVICE" in
 		users|cart|auth|content)
 			docker_build_and_push backend/$MICROSERVICE guzmanbenjamin/webmock-$MICROSERVICE:$VER
 			;;
-		frontend)
+		gateway)
 			docker_build_and_push frontend guzmanbenjamin/webmock-$MICROSERVICE:$VER
 			;;
 		*)

@@ -270,7 +270,7 @@ echo "     Useful links:"
 echo "       https://certbot.eff.org/"
 echo
 echo " * Start containers"
-echo -en "\033[94m"
+echo -en "\033[96m"
 echo "     sudo docker compose up -d"
 echo -en "\033[0m"
 echo
