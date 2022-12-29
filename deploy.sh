@@ -282,3 +282,7 @@ if __ask_yesno; then
 	echo "*** Starting containers ***"
 	sudo docker compose up -d
 fi
+
+
+# remove password from cache
+sudo -K

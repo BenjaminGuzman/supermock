@@ -28,6 +28,19 @@ wget -O deploy.sh https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2/de
 
 TODO insert video tutorial
 
+If you want to add TLS, the following architecture is suggested
+
+![TLS Architecture](docs/arch-tls.jpg)
+
+More clearly, just add a non-dockerized nginx server with 2 main purposes:
+
+1. Act as reverse proxy, i.e. forward all requests to (dockerized) nginx plain HTTP server at 127.0.0.1:8080
+
+2. Handle TLS. The server should have open port 443 and (optionally) port 80 to redirect to https.
+
+To add TLS to the non-dockerized nginx server [certbot](https://certbot.eff.org/) and 
+[Let's Encrypt](https://letsencrypt.org/) are recommended.
+
 ## Develop
 
 If you want to run the project locally you'll need to spin up the angular server (described in Frontend section) and 
