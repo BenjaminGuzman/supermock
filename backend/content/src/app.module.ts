@@ -2,7 +2,6 @@ import { HttpException, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import * as Joi from "joi";
-import { JwtModule } from "@nestjs/jwt";
 import { ArtistEntity } from "./content/artists/artist.entity";
 import { AlbumEntity } from "./content/albums/album.entity";
 import { TrackEntity } from "./content/tracks/track.entity";
@@ -43,13 +42,6 @@ import { ContentModule } from "./content/content.module";
 				entities: [ArtistEntity, AlbumEntity, TrackEntity],
 			}),
 		}),
-		JwtModule.registerAsync({
-			imports: [ConfigModule],
-			inject: [ConfigService],
-			useFactory: async (config: ConfigService) => ({
-				secret: config.get<string>("JWT_SECRET"),
-			}),
-		}),
 		GraphQLModule.forRootAsync<ApolloDriverConfig>({
 			driver: ApolloDriver,
 			imports: [ConfigModule],
@@ -84,5 +76,4 @@ import { ContentModule } from "./content/content.module";
 	controllers: [],
 	providers: [],
 })
-export class AppModule {
-}
+export class AppModule {}

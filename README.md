@@ -63,15 +63,18 @@ In order to run all backend microservices you need to execute `npm run start` (o
 microservice directory, e.g. to start the _users_ microservice you need to be placed inside 
 [`backend/users`](backend/users) and run the already mentioned command.
 
-Note: if you don't want to set up a PostgreSQL database in your machine, you could simply start a docker container with 
+**Note**: if you don't want to set up a PostgreSQL database in your machine, you could simply start a docker container with 
 `docker compose -f docker-compose-psql.yml up`.
 
 **Note**: If you want to **easily start** everything in development mode, simply use
 [Microstart](https://github.com/BenjaminGuzman/microstart). Check [`microstart.yml`](microstart.yml)
 
-**Why there is no gateway?**
+**Note**: The content microservice doesn't require authentication (JWT) because its contents are public anyway
+(Deezer API is consumed).
 
-For production mode, nginx serves as gateway/reverse proxy.
+**Why there is no GraphQL gateway?**
+
+For production mode, nginx serves as HTTP gateway/reverse proxy.
 
 However, it was not really considered during the architecture design phase just to keep things simple.
 

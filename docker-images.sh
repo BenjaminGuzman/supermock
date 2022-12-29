@@ -60,9 +60,10 @@ if [[ ! -z "$2" ]]; then # build and push specific microservice
 	esac
 else # build and push all microservices
 	# Build and push backend images
-	docker_build_and_push backend/users guzmanbenjamin/webmock-users:$VER
-	docker_build_and_push backend/auth guzmanbenjamin/webmock-auth:$VER
-	docker_build_and_push backend/content guzmanbenjamin/webmock-content:$VER
+	MICROSERVICES=(auth users content cart)
+	for microservice in "${MICROSERVICES[@]}"; do
+		docker_build_and_push backend/$microservice guzmanbenjamin/webmock-$microservice:$VER
+	done
 
 	# Build and push frontend and gateway image
 	docker_build_and_push frontend guzmanbenjamin/webmock-gateway:$VER

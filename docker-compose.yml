@@ -11,6 +11,18 @@ services:
       - "./backend/auth/.env.prod:/.env"
       - "./backend/auth/secret.txt:/secret.txt"
 
+  cart:
+    image: guzmanbenjamin/webmock-cart:v2.0-alpha
+    restart: on-failure
+    #ports:
+    #  - "127.0.0.1:3000:3000"
+    volumes:
+      - "./backend/cart/.env.prod:/usr/src/.env"
+    links:
+      - "postgres:postgres"
+      - "mongo:mongo"
+      - "auth:auth"
+
   content:
     image: guzmanbenjamin/webmock-content:v2.0-alpha
     restart: on-failure
@@ -56,7 +68,8 @@ services:
       - "80:80"
     environment:
       - "GATEWAY_BASE_URL=https://test.benjaminguzman.dev"
+      #- "GATEWAY_BASE_URL=http://127.0.0.1" # for local deployment
     links:
-      #- "cart:cart"
+      - "cart:cart"
       - "users:users"
       - "content:content"
