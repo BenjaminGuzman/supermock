@@ -42,9 +42,10 @@ mkdir db
 curl -O "db/db-init.sh" https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/db/db-init.sh
 ```
 
-2. Start containers
+2. Create required network and start containers
 
 ```bash
+sudo docker network create webmock-net --driver bridge --internal > /dev/null 2>&1
 sudo docker compose up -d
 ```
 
