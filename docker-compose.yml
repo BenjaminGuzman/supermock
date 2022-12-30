@@ -3,12 +3,17 @@ services:
     image: guzmanbenjamin/webmock:v1.0-alpha
     restart: on-failure
     ports:
-      - "80:3000"
-      #- "127.0.0.1:3000:3000" # if deploying v2 and v1 on the same server
+      - "80:3000" # comment if deploying v1 and v2 on same host
     volumes:
       - ".env.prod:/usr/src/.env"
     links:
-      - "db:postgres"
+      - "v1-db:postgres"
+    networks:
+      webmock-net:
+        aliases:
+          - v1
+       internal-net:
+          
 
   db:
     image: postgres
@@ -17,3 +22,12 @@ services:
       - "./db/db-init.sh:/docker-entrypoint-initdb.d/db-init.sh"
     environment:
       - "POSTGRES_PASSWORD=pass"
+    networks:
+      - internal-net
+
+networks:
+  webmock-net:
+    external: true
+  internal-net:
+    driver: bridge
+    internal: true
