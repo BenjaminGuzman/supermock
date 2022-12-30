@@ -27,7 +27,7 @@ v1 uses **monolith** architecture and **MVC** patten.
 Using curl:
 
 ```bash
-curl https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/docker-compose.yml
+curl -o docker-compose.yml https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/docker-compose.yml
 curl -o .env.prod https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/.env.example
 mkdir db
 curl -o "db/db-init.sh" https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/db/db-init.sh
@@ -36,7 +36,7 @@ curl -o "db/db-init.sh" https://raw.githubusercontent.com/BenjaminGuzman/webmock
 Using wget:
 
 ```bash
-wget https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/docker-compose.yml
+wget -O docker-compose.yml https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/docker-compose.yml
 wget -O .env.prod https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/.env.example
 mkdir db
 curl -O "db/db-init.sh" https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/db/db-init.sh
