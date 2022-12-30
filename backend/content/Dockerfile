@@ -1,10 +1,13 @@
 # stage 1: build cache
 FROM node:18-alpine3.15 as builder
-COPY ["package.json", "package-lock.json", "/usr/src/"]
 
-# Install dependencies required for build, then build the application
+# Install dependencies required for build
+COPY ["package.json", "package-lock.json", "/usr/src/"]
 WORKDIR /usr/src
 RUN npm ci
+
+# Build the application
+COPY [".", "/usr/src"]
 RUN npm run build
 
 # delete dev dependencies

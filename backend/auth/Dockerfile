@@ -4,7 +4,7 @@ RUN apk add build-base # install gcc
 
 WORKDIR /usr/src
 
-COPY . /usr/src
+COPY [".", "/usr/src"]
 
 #ENV CGO_ENABLED=0 # executable seems to be slow if CGO is disabled
 RUN mv .env.test .env && go test

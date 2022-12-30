@@ -41,6 +41,8 @@ More clearly, just add a non-dockerized nginx server with 2 main purposes:
 To add TLS to the non-dockerized nginx server [certbot](https://certbot.eff.org/) and 
 [Let's Encrypt](https://letsencrypt.org/) are recommended.
 
+**It may also be worth it to read the instructions on how to do it for v1** (branch v1)
+
 ## Develop
 
 If you want to run the project locally you'll need to spin up the angular server (described in Frontend section) and 
