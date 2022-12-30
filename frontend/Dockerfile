@@ -18,5 +18,6 @@ COPY ["gateway.conf", "/etc/nginx/conf.d/"]
 COPY ["000-setup.sh", "/docker-entrypoint.d/"]
 RUN chmod a+x /docker-entrypoint.d/000-setup.sh
 
-# Replace default domain in "compiled environment.prod.ts" when container starts
-CMD ["sh", "-c", "find /var/www/html/webmock -not -type d | xargs sed -i \"s|https://test.benjaminguzman.dev|$GATEWAY_BASE_URL|g\"; nginx -g 'daemon off;'"]
+# For some strange reason the setup script is not executed if it is just placed in docker-entrypoint.d
+# So, execute it directly in here
+CMD ["sh", "-c", "/docker-entrypoint.d/000-setup.sh && nginx -g 'daemon off;'"]
