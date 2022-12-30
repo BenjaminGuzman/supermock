@@ -280,7 +280,12 @@ fi
 START_CONTAINERS_CMD="cd '$WORKING_DIR' && sudo docker compose up -d"
 if [[ ! -z "$V1_COMPOSE_FILE" ]]; then
 	echo "Configuring request forwarding for V1..."
-	sed -i "s/INCLUDE_V1=.*/INCLUDE_V1=true/g" docker-compose.yml
+	sed -i 's/INCLUDE_V1=[a-zA-Z]+/INCLUDE_V1=true/g' docker-compose.yml
+	
+	# don't expose ports on V1 compose file, v2 networking will handle that
+	sed -i 's/(\s+)-\s*"80:3000"/\1#-"80:3000"/g' "$V1_COMPOSE_FILE"
+	sed -i 's/(\s+)ports:/\1#ports:/g' "$V1_COMPOSE_FILE"
+
 	V1_COMPOSE_FILE_DIR=$(dirname "$V1_COMPOSE_FILE")
 	START_CONTAINERS_CMD="cd '$V1_COMPOSE_FILE_DIR' && sudo docker compose -f '$V1_COMPOSE_FILE' up -d && $START_CONTAINERS_CMD"
 fi
