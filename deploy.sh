@@ -68,7 +68,8 @@ function help {
 	echo Options:
 	echo " -h               Display this help message and exit"
 	echo " -d domain        Domain name, e.g. test.benjaminguzman.dev"
-	echo " -w directory     Working directory. This directory will store the git repo"
+	echo " -w directory     Working directory. Must be an empty directory"
+	echo "                  This directory will store the git repo or downloaded files"
 	echo "                    Default: $HOME"
 	echo " -t               You plan to add TLS (https)"
 	echo "                    Providing this flag will bind nginx server to 127.0.0.1:8080"
@@ -87,7 +88,7 @@ WORKING_DIR="$HOME"
 USE_GIT="f"
 USE_TLS="f"
 V1_COMPOSE_FILE=""
-while getopts ":hd:w:1:gt" opt; do
+while getopts ":hd:w:f:gt" opt; do
 	case $opt in
 		h)
 			help
@@ -104,7 +105,7 @@ while getopts ":hd:w:1:gt" opt; do
 		t)
 			USE_TLS="t"
 			;;
-		1)
+		f)
 			V1_COMPOSE_FILE="$OPTARG"
 			;;
 		*)
@@ -118,6 +119,13 @@ if [[ -z "$DOMAIN" ]]; then
 	echo -e "\033[91mYou must provide a domain name\033[0m"
 	help
 	exit 1
+fi
+
+if [[ ! -d "$WORKING_DIR" ]]; then
+	echo "Directory $WORKING_DIR doesn't exist. "
+	if __ask_yesno "Would you like to create $WORKING_DIR"; then
+		mkdir -p "$WORKING_DIR"
+	fi
 fi
 
 __print_section "Detecting distribution"
@@ -172,13 +180,13 @@ if [[ "$DISTRO" == "gentoo" ]]; then
 		exit 0
 	fi
 
-	__check_dep docker "systemctl cat docker" "sudo emerge app-containers/docker app-containers/docker-cli"
+	__check_dep docker "systemctl cat docker" "sudo emerge app-containers/docker app-containers/docker-cli; sudo systemctl start docker"
 elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-	__check_dep docker "systemctl cat docker" "sudo apt-get update; sudo apt-get install -y ca-certificates curl gnupg lsb-release; sudo mkdir -p /etc/apt/keyrings; curl -fsSL https://download.docker.com/linux/$DISTRO/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg; echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO  $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null; sudo apt-get update; sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin"
+	__check_dep docker "systemctl cat docker" "sudo apt-get update; sudo apt-get install -y ca-certificates curl gnupg lsb-release; sudo mkdir -p /etc/apt/keyrings; curl -fsSL https://download.docker.com/linux/$DISTRO/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg; echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO  $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null; sudo apt-get update; sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
 elif [[ "$DISTRO" == "fedora" ]]; then
-	__check_dep docker "systemctl cat docker" "sudo dnf install -y dnf-plugins-core; sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin"
+	__check_dep docker "systemctl cat docker" "sudo dnf install -y dnf-plugins-core; sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
 elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
-	__check_dep docker "systemctl cat docker" "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin"
+	__check_dep docker "systemctl cat docker" "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
 fi
 
 __print_section "Downloading configuration files"
@@ -198,8 +206,7 @@ if [[ "$USE_GIT" == "t" ]]; then
 		__check_dep git "git --help" "sudo yum install -y git"
 	fi
 
-	git clone https://github.com/BenjaminGuzman/webmock.git
-	cd webmock || exit 1
+	git clone https://github.com/BenjaminGuzman/webmock.git .
 	git checkout v2 # this script is intended to be used with v2 only
 
 	# Move .env.example to .env.prod for each microservice
@@ -207,11 +214,6 @@ if [[ "$USE_GIT" == "t" ]]; then
 		mv "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
 	done
 else
-	# if using git, webmock directory is created inside working directory
-	# keep that directory structure for consistency
-	mkdir webmock > /dev/null 2>&1
-	cd webmock || exit 1
-
 	tool=wget
 	for possible_tool in wget curl; do
 		if which $possible_tool > /dev/null 2>&1; then
@@ -237,11 +239,10 @@ fi
 
 __print_section "Creating random secret for auth microservice"
 echo "Executing script backend/auth/random-secret.sh..."
-curr_work_dir=$(pwd)
 cd backend/auth || exit 1
 chmod u+x random-secret.sh
 ./random-secret.sh > /dev/null 2>&1
-cd "$curr_work_dir" || exit 1
+cd "$WORKING_DIR" || exit 1
 
 __print_section "Changing domain name to $DOMAIN"
 PROTOCOL="http"
@@ -276,11 +277,12 @@ else
 	echo "TLS is not intended to be used. Nginx HTTP server will bind to port 80"
 fi
 
-START_CONTAINERS_CMD="sudo docker compose up -d"
+START_CONTAINERS_CMD="cd '$WORKING_DIR' && sudo docker compose up -d"
 if [[ ! -z "$V1_COMPOSE_FILE" ]]; then
 	echo "Configuring request forwarding for V1..."
 	sed -i "s/INCLUDE_V1=.*/INCLUDE_V1=true/g" docker-compose.yml
-	START_CONTAINERS_CMD="sudo docker compose up -d -f '$V1_COMPOSE_FILE' && $START_CONTAINERS_CMD"
+	V1_COMPOSE_FILE_DIR=$(dirname "$V1_COMPOSE_FILE")
+	START_CONTAINERS_CMD="cd '$V1_COMPOSE_FILE_DIR' && sudo docker compose -f '$V1_COMPOSE_FILE' up -d && $START_CONTAINERS_CMD"
 fi
 
 __print_section "Creating docker network (webmock-net)"
@@ -299,7 +301,7 @@ echo
 
 if __ask_yesno "Would you like to start the containers now"; then
 	__print_section "Starting containers"
-	$START_CONTAINERS_CMD
+	sh -c "$START_CONTAINERS_CMD"
 fi
 
 # remove password from cache
