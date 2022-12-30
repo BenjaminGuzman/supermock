@@ -70,8 +70,8 @@ After you have managed to install the certificates and you have the default ngin
 server running, simply configure it to forward all requests to the container 
 by using a `proxy_pass` directive.
 
-Since, by default, the application runs on port 80, you will also need to change the
-`PORT` configuration inside `.env.prod`.
+Since, by default, the application runs on port 80, you will also need to change 
+exposed port in `docker-compose.yml`.
 
 ## Running the app locally
 
@@ -82,7 +82,6 @@ npm run start
 # watch mode
 npm run start:dev
 ```
-
 
 ## Usage
 
