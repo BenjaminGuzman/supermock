@@ -7,12 +7,12 @@ services:
     volumes:
       - ".env.prod:/usr/src/.env"
     links:
-      - "v1-db:postgres"
+      - "db:postgres"
     networks:
       webmock-net:
         aliases:
           - v1
-       internal-net:
+      internal-net:
           
 
   db:
