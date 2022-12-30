@@ -5,8 +5,11 @@
 v1 is intentionally and deliberately developed with some errors and bad practices such as:
 
 - Small pool size
+
 - Backend code may use synchronized code (blocking the event loop)
+
 - Database has some non-indexed tables
+
 - MemoryStore is used to store sessions (memory leak)
 
 On the other side, v2 is built without (known) errors and good practices.
@@ -15,66 +18,71 @@ You can automate some tests, execute them using v1 and then execute them with v2
 
 ## Architecture
 
-v1 uses **monolith** and **MVC** arch.
-
-## Running the app locally
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-```
+v1 uses **monolith** architecture and **MVC** patten.
 
 ## Deploying the app
 
-### Using docker
+1. Download required files
 
-**Run on local machine**
-
-1. Create your own `.env.prod` file (see [`.env.example`](.env.example))
-2. (Optional) Modify [`db/db-init.sh`](db/db-init.sh)
-3. Copy important files to server
+Using curl:
 
 ```bash
-# copy init files to server (run on local machine)
-scp db/db-init.sh user@testing.example.com:~/db/db-init.sh
-scp docker-compose.yml .env.prod user@testing.example.com:~ # you should create your own .env.prod, see .env.example 
+curl https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/docker-compose.yml
+curl -o .env.prod https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/.env.example
+mkdir db
+curl -o "db/db-init.sh" https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/db/db-init.sh
 ```
 
-**Run on server**
+Using wget:
 
-1Start the containers
+```bash
+wget https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/docker-compose.yml
+wget -O .env.prod https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/.env.example
+mkdir db
+curl -O "db/db-init.sh" https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/db/db-init.sh
+```
+
+2. Start containers
+
 ```bash
 sudo docker compose up -d
 ```
 
-That will spin up an HTTP server
+That will spin up a plain-HTTP server
 
-If you need an HTTPS server read below
+## Adding TLS
 
-## HTTPS server as reverse proxy
+To add HTTPS it is suggested to spin up a non-dockerized nginx server to handle TLS.
 
-**Run on local machine**
-
-```bash
-# configure nginx (make sure you update the config before executing. Run on your local machine)
-sed -i "s/testing.example.com/mydomain.com/" testing.example.com.conf && cp testing.example.com.conf mydomain.com.conf # make sure you update the domain name
-scp mydomain.com.conf user@mydomain.com:/etc/nginx/conf.d/mydomain.com.conf
-```
-
-**Run on server**
+Commands to do so in a RHEL machine are provided below.
 
 ```bash
 # install nginx
 sudo dnf install nginx
 
-# install let's encrypt certificate (run on server)
+# install let's encrypt certificate
 sudo dnf install epel-release
 sudo dnf install certbot python3-certbot-nginx
-sudo certbot --nginx -d mydomain.com
+sudo certbot --nginx -d example.com
 ```
+
+After you have managed to install the certificates and you have the default nginx HTTPS
+server running, simply configure it to forward all requests to the container 
+by using a `proxy_pass` directive.
+
+Since, by default, the application runs on port 80, you will also need to change the
+`PORT` configuration inside `.env.prod`.
+
+## Running the app locally
+
+```bash
+# development
+npm run start
+
+# watch mode
+npm run start:dev
+```
+
 
 ## Usage
 

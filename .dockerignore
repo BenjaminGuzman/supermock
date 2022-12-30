@@ -1,5 +1,10 @@
+.git/
 node_modules/
 db/
+dist/
+docs/
+.env
+.env.*
 
 backend/
 frontend/
