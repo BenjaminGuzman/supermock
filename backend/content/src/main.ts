@@ -12,6 +12,7 @@ async function bootstrap() {
 		new FastifyAdapter(),
 	);
 	app.setGlobalPrefix("/v2/content");
+	app.enableShutdownHooks(["SIGINT", "SIGTERM", "SIGQUIT"]);
 
 	const config = app.get<ConfigService>(ConfigService);
 
