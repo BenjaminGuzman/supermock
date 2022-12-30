@@ -16,7 +16,7 @@ function __ask_yesno {
 		elif [[ "$ans" == "n" || "$ans" == "N" ]]; then
 			return 1
 		else
-			echo -ne "\"$ans\" was not understood. Please enter \033[97mY\033[0m or \033[97mn\033[0m"
+			echo -e "\"$ans\" was not understood. Please enter \033[97mY\033[0m or \033[97mn\033[0m"
 		fi
 	done
 }
@@ -78,7 +78,7 @@ function help {
 	echo "                    Notice however, you should configure TLS on your own."
 	echo " -g               Use git instead of downloading files with curl or wget"
 	echo " -f filepath      Path to docker-compose.yml for v1."
-	echo "                  Only provide this option if you intend to also deploy v1"
+	echo "                  Only provide this option if you want to deploy v1"
 }
 
 ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
@@ -280,14 +280,23 @@ fi
 START_CONTAINERS_CMD="cd '$WORKING_DIR' && sudo docker compose up -d"
 if [[ ! -z "$V1_COMPOSE_FILE" ]]; then
 	echo "Configuring request forwarding for V1..."
-	sed -i 's/INCLUDE_V1=[a-zA-Z]+/INCLUDE_V1=true/g' docker-compose.yml
+	sed -i 's/INCLUDE_V1=[a-zA-Z]\+/INCLUDE_V1=true/g' docker-compose.yml
 	
 	# don't expose ports on V1 compose file, v2 networking will handle that
-	sed -i 's/(\s+)-\s*"80:3000"/\1#-"80:3000"/g' "$V1_COMPOSE_FILE"
-	sed -i 's/(\s+)ports:/\1#ports:/g' "$V1_COMPOSE_FILE"
+	sed -i 's/\(\s\+\)-\s*"80:3000"/\1#- "80:3000"/g' "$V1_COMPOSE_FILE"
+	sed -i 's/\(\s\+\)ports:/\1#ports:/g' "$V1_COMPOSE_FILE"
 
 	V1_COMPOSE_FILE_DIR=$(dirname "$V1_COMPOSE_FILE")
 	START_CONTAINERS_CMD="cd '$V1_COMPOSE_FILE_DIR' && sudo docker compose -f '$V1_COMPOSE_FILE' up -d && $START_CONTAINERS_CMD"
+else
+	echo "Won't forward requests to V1"
+	echo If you want to deploy v1 only, you may need to execute these commands:
+	echo
+	echo sed -i 's/INCLUDE_V1=[a-zA-Z]\+/INCLUDE_V1=false/g' $WORKING_DIR/docker-compose.yml
+	
+	# expose ports on V1 compose file (undo changes)
+	echo sed -i 's/#- "80:3000"/- "80:3000"/g' V1_COMPOSE_FILE
+	echo sed -i 's/#ports:/ports:/g' V1_COMPOSE_FILE
 fi
 
 __print_section "Creating docker network (webmock-net)"
