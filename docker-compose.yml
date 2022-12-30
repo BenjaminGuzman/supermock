@@ -1,3 +1,4 @@
+version: "3.9"
 services:
   # microservices don't need to export ports
   # since all connections from gateway
@@ -10,6 +11,8 @@ services:
     volumes:
       - "./backend/auth/.env.prod:/.env"
       - "./backend/auth/secret.txt:/secret.txt"
+    networks:
+      - webmock-net
 
   cart:
     image: guzmanbenjamin/webmock-cart:v2.0-alpha
@@ -18,10 +21,13 @@ services:
     #  - "127.0.0.1:3000:3000"
     volumes:
       - "./backend/cart/.env.prod:/usr/src/.env"
-    links:
-      - "postgres:postgres"
-      - "mongo:mongo"
-      - "auth:auth"
+    networks:
+      - webmock-net
+    depends_on:
+      - auth
+      - content
+      - postgres
+      - mongo
 
   content:
     image: guzmanbenjamin/webmock-content:v2.0-alpha
@@ -30,9 +36,11 @@ services:
     #  - "127.0.0.1:5000:3000"
     volumes:
       - "./backend/content/.env.prod:/usr/src/.env"
-    links:
-      - "postgres:postgres"
-      - "auth:auth"
+    networks:
+      - webmock-net
+    depends_on:
+      - auth
+      - postgres
 
   users:
     image: guzmanbenjamin/webmock-users:v2.0-alpha
@@ -41,9 +49,11 @@ services:
     #  - "127.0.0.1:4000:3000"
     volumes:
       - "./backend/users/.env.prod:/usr/src/.env"
-    links:
-      - "postgres:postgres"
-      - "auth:auth"
+    networks:
+      - webmock-net
+    depends_on:
+      - postgres
+      - auth
 
   postgres:
     image: postgres
@@ -53,6 +63,8 @@ services:
       - "./postgres/002-ddl.sql:/docker-entrypoint-initdb.d/002-ddl.sql"
     environment:
       - "POSTGRES_PASSWORD=pass"
+    networks:
+      - webmock-net
 
   mongo:
     image: mongo
@@ -60,6 +72,8 @@ services:
     volumes:
       - "./mongo/001-users.js:/docker-entrypoint-initdb.d/001-users.js"
     command: --auth
+    networks:
+      - webmock-net
 
   gateway:
     image: guzmanbenjamin/webmock-gateway:v2.0-alpha
@@ -68,8 +82,20 @@ services:
       - "80:80"
     environment:
       - "GATEWAY_BASE_URL=https://test.benjaminguzman.dev"
+      - "INCLUDE_V1=false"
       #- "GATEWAY_BASE_URL=http://127.0.0.1" # for local deployment
-    links:
-      - "cart:cart"
-      - "users:users"
-      - "content:content"
+    networks:
+      - webmock-net
+      - public-net
+    depends_on:
+      - users
+      - content
+      - cart
+
+networks:
+  webmock-net:
+    external: true
+    internal: true
+  public-net:
+    driver: bridge
+    #enable_ipv6: true

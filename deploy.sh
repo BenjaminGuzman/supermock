@@ -64,7 +64,7 @@ function __download {
 function help {
 	echo Deploy web mock app for testing
 	echo
-	echo "Syntax: $0 -d domain [-w directory] [-g] [-t]"
+	echo "Syntax: $0 -d domain [-w directory] [-g] [-t] [-f filepath]"
 	echo Options:
 	echo " -h               Display this help message and exit"
 	echo " -d domain        Domain name, e.g. test.benjaminguzman.dev"
@@ -76,6 +76,8 @@ function help {
 	echo "                    frontend will use https protocol instead of http."
 	echo "                    Notice however, you should configure TLS on your own."
 	echo " -g               Use git instead of downloading files with curl or wget"
+	echo " -f filepath      Path to docker-compose.yml for v1."
+	echo "                  Only provide this option if you intend to also deploy v1"
 }
 
 ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
@@ -84,7 +86,8 @@ DOMAIN=""
 WORKING_DIR="$HOME"
 USE_GIT="f"
 USE_TLS="f"
-while getopts ":hd:w:gt" opt; do
+V1_COMPOSE_FILE=""
+while getopts ":hd:w:1:gt" opt; do
 	case $opt in
 		h)
 			help
@@ -100,6 +103,9 @@ while getopts ":hd:w:gt" opt; do
 			;;
 		t)
 			USE_TLS="t"
+			;;
+		1)
+			V1_COMPOSE_FILE="$OPTARG"
 			;;
 		*)
 			echo "Invalid option '$opt'"
@@ -270,6 +276,16 @@ else
 	echo "TLS is not intended to be used. Nginx HTTP server will bind to port 80"
 fi
 
+START_CONTAINERS_CMD="sudo docker compose up -d"
+if [[ ! -z "$V1_COMPOSE_FILE" ]]; then
+	echo "Configuring request forwarding for V1..."
+	sed -i "s/INCLUDE_V1=.*/INCLUDE_V1=true/g" docker-compose.yml
+	START_CONTAINERS_CMD="sudo docker compose up -d -f '$V1_COMPOSE_FILE' && $START_CONTAINERS_CMD"
+fi
+
+__print_section "Creating docker network (webmock-net)"
+sudo docker network create webmock-net --driver bridge > /dev/null 2>&1
+
 __print_section "Next steps"
 echo " * (Optional) Add TLS certificate using certbot and Let's Encrypt"
 echo "     Useful links:"
@@ -277,13 +293,13 @@ echo "       https://certbot.eff.org/"
 echo
 echo " * Start containers"
 echo -en "\033[96m"
-echo "     sudo docker compose up -d"
+echo "     $START_CONTAINERS_CMD"
 echo -en "\033[0m"
 echo
 
 if __ask_yesno "Would you like to start the containers now"; then
 	__print_section "Starting containers"
-	sudo docker compose up -d
+	$START_CONTAINERS_CMD
 fi
 
 # remove password from cache
