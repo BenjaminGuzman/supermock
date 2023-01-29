@@ -19,9 +19,53 @@ export class TrackInCart {
 
 	@Field()
 	dateAdded: string;
+
+	@Field()
+	albumId: string;
 }
 
-@ObjectType("Cart")
+/*// professional solution would be to actually extend the schema by using Apollo federation or something like that
+@ObjectType({
+	description: "Extension of the Album type from content microservice",
+})
+export class AlbumInCart {
+	@Field(() => Int)
+	id: number;
+
+	@Field()
+	title: string;
+
+	@Field({ description: "URL to deezer's cover image", nullable: true })
+	cover?: string;
+
+	@Field(() => [TrackInCart])
+	tracksInCart: TrackInCart[];
+
+	@Field()
+	subtotal: string;
+}
+
+@ObjectType({
+	description: "Extension of the Artist type from content microservice"
+})
+export class ArtistInCart {
+	@Field(() => Int)
+	id: number;
+
+	@Field()
+	name: string;
+
+	@Field({ nullable: true })
+	picture?: string;
+
+	@Field(() => [AlbumInCart])
+	albumsInCart: AlbumInCart[];
+
+	@Field()
+	subtotal: string;
+}*/
+
+@ObjectType()
 export class GQLCart {
 	@Field(() => ID)
 	id: string;
@@ -29,6 +73,13 @@ export class GQLCart {
 	@Field()
 	total: string;
 
-	@Field(() => [TrackInCart])
-	tracks: TrackInCart[];
+	/*@Field(() => [ArtistInCart], {
+		description: "Tracks in cart grouped by artist (and album)",
+	})
+	artistsInCart: ArtistInCart[];*/
+
+	@Field(() => [TrackInCart], {
+		description: "Tracks in cart. (Flat array, data is not grouped)",
+	})
+	tracksInCart: TrackInCart[];
 }

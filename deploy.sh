@@ -62,23 +62,26 @@ function __download {
 }
 
 function help {
-	echo Deploy web mock app for testing
+	echo -e "\033[37;1mDeploy web mock app for testing\033[0m"
+	echo "More info:  https://github.com/BenjaminGuzman/webmock"
+	echo "Author:     Benjamín Guzmán (https://benjaminguzman.dev)"
 	echo
-	echo "Syntax: $0 -d domain [-w directory] [-g] [-t] [-f filepath]"
+	echo -e "Usage: \033[34;1m$0\033[0m \033[33;1m-d domain\033[0m \033[33m[-w directory] [-g] [-t] [-f filepath]\033[0m"
+	echo
 	echo Options:
-	echo " -h               Display this help message and exit"
-	echo " -d domain        Domain name, e.g. test.benjaminguzman.dev"
-	echo " -w directory     Working directory. Must be an empty directory"
-	echo "                  This directory will store the git repo or downloaded files"
-	echo "                    Default: $HOME"
-	echo " -t               You plan to add TLS (https)"
-	echo "                    Providing this flag will bind nginx server to 127.0.0.1:8080"
-	echo "                    instead of [::]:80 and 0.0.0.0:80, and"
-	echo "                    frontend will use https protocol instead of http."
-	echo "                    Notice however, you should configure TLS on your own."
-	echo " -g               Use git instead of downloading files with curl or wget"
-	echo " -f filepath      Path to docker-compose.yml for v1."
-	echo "                  Only provide this option if you want to deploy v1"
+	echo -e " \033[33;1m-h\033[0m               - Display this help message and exit"
+	echo -e " \033[33;1m-d domain\033[0m        - Domain name, e.g. test.benjaminguzman.dev"
+	echo -e " \033[33;1m-w directory\033[0m     - Working directory. Must be an empty directory"
+	echo -e "                    This directory will store the git repo or downloaded files"
+	echo -e "                      Default: $HOME"
+	echo -e " \033[33;1m-t\033[0m               - You plan to add TLS (https)"
+	echo -e "                      Providing this flag will bind nginx server to 127.0.0.1:8080"
+	echo -e "                      instead of [::]:80 and 0.0.0.0:80, and"
+	echo -e "                      frontend will use https protocol instead of http."
+	echo -e "                      Notice however, you should configure TLS on your own."
+	echo -e " \033[33;1m-g\033[0m               - Use git instead of downloading files with curl or wget"
+	echo -e " \033[33;1m-f filepath\033[0m      - Path to docker-compose.yml for v1."
+	echo -e "                    Only provide this option if you want to deploy v1"
 }
 
 ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
@@ -116,7 +119,7 @@ done
 
 # Check required arguments
 if [[ -z "$DOMAIN" ]]; then
-	echo -e "\033[91mYou must provide a domain name\033[0m"
+	echo -e "\033[91;1mYou must provide a domain name\033[0m"
 	help
 	exit 1
 fi
@@ -132,10 +135,10 @@ __print_section "Detecting distribution"
 DISTROS=(gentoo ubuntu debian fedora centos rocky)
 DISTRO=""
 
-if which lsb-release > /dev/null 2>&1; then # detect distro with lsb-release
+if command -v lsb-release > /dev/null 2>&1; then # detect distro with lsb-release
 	LSB_RELEASE_OUT=$(lsb-release --id --short)
 	for distro in "${DISTROS[@]}"; do
-		occurrences=$(grep --ignore-case "$distro" --count <<< "$LSB_RELEASE_OUT")
+		occurrences=$(more "$LSB_RELEASE_OUT" | grep --ignore-case "$distro" --count)
 		if [[ "$occurrences" -ne "0" ]]; then
 			DISTRO="$distro"
 			break
@@ -216,7 +219,7 @@ if [[ "$USE_GIT" == "t" ]]; then
 else
 	tool=wget
 	for possible_tool in wget curl; do
-		if which $possible_tool > /dev/null 2>&1; then
+		if command -v "$possible_tool" > /dev/null 2>&1; then
 			tool=$possible_tool
 			break
 		fi
@@ -289,18 +292,19 @@ if [[ ! -z "$V1_COMPOSE_FILE" ]]; then
 	V1_COMPOSE_FILE_DIR=$(dirname "$V1_COMPOSE_FILE")
 	START_CONTAINERS_CMD="cd '$V1_COMPOSE_FILE_DIR' && sudo docker compose -f '$V1_COMPOSE_FILE' up -d && $START_CONTAINERS_CMD"
 else
-	echo "Won't forward requests to V1"
-	echo If you want to deploy v1 only, you may need to execute these commands:
+	echo "Won't forward requests to v1"
+	echo If you want to deploy v1 only, you may need to execute these commands
+	echo to restore configuration:
 	echo
-	echo sed -i 's/INCLUDE_V1=[a-zA-Z]\+/INCLUDE_V1=false/g' $WORKING_DIR/docker-compose.yml
+	echo sed -i \'s/INCLUDE_V1=[a-zA-Z]\+/INCLUDE_V1=false/g\' $WORKING_DIR/docker-compose.yml
 	
 	# expose ports on V1 compose file (undo changes)
-	echo sed -i 's/#- "80:3000"/- "80:3000"/g' V1_COMPOSE_FILE
-	echo sed -i 's/#ports:/ports:/g' V1_COMPOSE_FILE
+	echo "sed -i \'s/#- \"80:3000\"/- \"80:3000\"/g\' V1_COMPOSE_FILE"
+	echo "sed -i \'s/#ports:/ports:/g\' V1_COMPOSE_FILE"
 fi
 
 __print_section "Creating docker network (webmock-net)"
-sudo docker network create webmock-net --driver bridge > /dev/null 2>&1
+sudo docker network create webmock-net --driver bridge
 
 __print_section "Next steps"
 echo " * (Optional) Add TLS certificate using certbot and Let's Encrypt"

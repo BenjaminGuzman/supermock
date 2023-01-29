@@ -25,6 +25,10 @@ export class AlbumService {
 		return this.albumsRepo.findBy({ artist: { id: artistId } });
 	}
 
+	getByTrackId(trackId: number): Promise<AlbumEntity> {
+		return this.albumsRepo.findOneBy({ tracks: { id: trackId } });
+	}
+
 	search(search: string): Promise<AlbumEntity[]> {
 		// TODO implement this method
 		throw new Error("Not implemented yet");

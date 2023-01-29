@@ -6,7 +6,7 @@ import { InternalServerErrorException, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "../auth/auth.guard";
 import { InjectModel } from "@nestjs/mongoose";
 import { CartDocument, CartMongo } from "./cart.schema";
-import { Model } from "mongoose";
+import { Model, UpdateQuery } from "mongoose";
 import { ContentService, Track } from "../content.service";
 import Decimal from "decimal.js";
 
@@ -15,7 +15,7 @@ import Decimal from "decimal.js";
 export class CartResolver {
 	constructor(
 		@InjectModel(CartMongo.name) private cartModel: Model<CartDocument>,
-		private contentService: ContentService
+		private contentService: ContentService,
 	) {}
 
 	@Query(() => GQLCart, { nullable: true })
@@ -43,7 +43,9 @@ export class CartResolver {
 		try {
 			tracks = await this.contentService.getTracks(ids);
 		} catch (e) {
-			throw new InternalServerErrorException();
+			throw new InternalServerErrorException("Integration error", {
+				cause: e,
+			});
 		}
 		if (tracks.length === 0) return 0; // probably we were given invalid ids
 
@@ -53,14 +55,34 @@ export class CartResolver {
 			.reduce((prev: Decimal, curr: Decimal) => prev.add(curr));
 
 		const userId = jwtPayload.userId;
-		const cart = await this.cartModel.findOne({
+		let cart = await this.cartModel.findOne({
 			userId: userId,
 		});
-		let upsertQuery: Record<any, any> = {};
 		if (!cart) {
-			upsertQuery = {$set: {}};
+			const now = new Date();
+			const c: CartMongo = {
+				userId: userId,
+				total: subtotal.toString(),
+				tracksInCart: tracks.map((track) => ({
+					title: track.title,
+					link: track.link,
+					preview: track.preview,
+					price: track.price,
+					trackId: track.id,
+					dateAdded: now,
+					albumId: track.album.id,
+				})),
+			};
+			cart = new this.cartModel(c);
 		}
-		return 0;
+
+		try {
+			await cart.save();
+		} catch (e) {
+			throw new InternalServerErrorException("Database error");
+		}
+
+		return tracks.length;
 	}
 
 	@Mutation(() => Int, { description: "Add all album's tracks to cart" })

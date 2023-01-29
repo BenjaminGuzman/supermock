@@ -9,16 +9,19 @@ type TrackInCart {
   preview: String
   price: String!
   dateAdded: String!
+  albumId: String!
 }
 
-type Cart {
+type GQLCart {
   id: ID!
   total: String!
-  tracks: [TrackInCart!]!
+
+  """Tracks in cart. (Flat array, data is not grouped)"""
+  tracksInCart: [TrackInCart!]!
 }
 
 type Query {
-  cart: Cart
+  cart: GQLCart
 }
 
 type Mutation {

@@ -8,6 +8,7 @@ type Track {
   link: String
   preview: String
   price: String!
+  album: Album!
 }
 
 type Album {

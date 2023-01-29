@@ -9,9 +9,12 @@ services:
     aliases:
       - systemctl-docker
       - systemd-docker
+    errorPatterns:
+      - Error response from daemon
 
   - name: PostgreSQL
-    start: sudo --stdin docker compose -f docker-compose-psql.yml up # run microstart with sudo or this will break (but see comment below)
+    start: sudo --stdin docker compose -f docker-compose-psql.yml up --remove-orphans # run microstart with sudo or this will break (but see comment below)
+    stop: sudo --stdin docker compose -f docker-compose-psql.yml down
     aliases:
       - psql
       - postgres
@@ -20,9 +23,12 @@ services:
       - database system is ready to accept connections
       - Attaching to webmock-.*
     stdin: sudo-password.txt # to avoid having your password in a plain text file, simply run "sudo echo" or something to store the password in cache
+    errorPatterns:
+      - Error response from daemon
 
   - name: MongoDB
     start: sudo --stdin docker compose -f docker-compose-mongo.yml up
+    stop: sudo --stdin docker compose -f docker-compose-mongo.yml down
     aliases:
       - mongo
     color: 0x00ff00
@@ -30,6 +36,8 @@ services:
       - Waiting for connections
       - Attaching to webmock-.*
     stdin: sudo-password.txt
+    errorPatterns:
+      - Error response from daemon
 
   - name: Users
     start: cd backend/users && npm run start:dev
@@ -38,13 +46,12 @@ services:
     color: 0xff00ff
     startedPatterns:
       - Nest application successfully started
-    timeout: 1
 
   - name: Content
     aliases:
       - content
     start: cd backend/content && npm run start:dev
-    coilor: 0x00ff0f
+    color: 0x00ff0f
     startedPatterns:
       - Nest application successfully started
 
@@ -96,6 +103,9 @@ groups:
   - name: Database group
     aliases:
       - database
+      - databases
+      - db
+      - dbs
     services:
       - postgres
       - mongo

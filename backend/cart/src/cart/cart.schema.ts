@@ -3,6 +3,9 @@ import { HydratedDocument } from "mongoose";
 
 export class TrackInCart {
 	@Prop({ required: true })
+	trackId: string;
+
+	@Prop({ required: true })
 	title: string;
 
 	@Prop({ required: false })
@@ -16,34 +19,9 @@ export class TrackInCart {
 
 	@Prop(Date)
 	dateAdded: Date;
-}
-
-export class AlbumInCart {
-	@Prop({ required: true })
-	title: string;
-
-	@Prop({ required: false })
-	cover?: string;
-
-	@Prop([TrackInCart])
-	tracksInCart: TrackInCart[];
 
 	@Prop({ required: true })
-	subtotal: string;
-}
-
-export class ArtistInCart {
-	@Prop({ required: true })
-	name: string;
-
-	@Prop({ required: false })
-	picture?: string;
-
-	@Prop([AlbumInCart])
-	albumsInCart: AlbumInCart[];
-
-	@Prop({ required: true })
-	subtotal: string;
+	albumId: string;
 }
 
 @Schema()
@@ -54,8 +32,8 @@ export class CartMongo {
 	@Prop()
 	total: string;
 
-	@Prop([ArtistInCart])
-	artistsInCar: [ArtistInCart];
+	@Prop([TrackInCart])
+	tracksInCart: TrackInCart[];
 }
 
 export const CartSchema = SchemaFactory.createForClass(CartMongo);

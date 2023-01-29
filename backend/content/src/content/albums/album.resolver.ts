@@ -9,9 +9,9 @@ import { ArtistService } from "../artists/artist.service";
 @Resolver(() => Album)
 export class AlbumResolver {
 	constructor(
-		private albumsService: AlbumService,
-		private tracksService: TrackService,
-		private artistsService: ArtistService,
+		private albumService: AlbumService,
+		private trackService: TrackService,
+		private artistService: ArtistService,
 	) {
 	}
 
@@ -21,7 +21,7 @@ export class AlbumResolver {
 			return null;
 
 		const id: number = parseInt(albumId);
-		const albumEntity: AlbumEntity = await this.albumsService.getById(id);
+		const albumEntity: AlbumEntity = await this.albumService.getById(id);
 		if (!albumEntity)
 			return null;
 
@@ -31,13 +31,13 @@ export class AlbumResolver {
 	@ResolveField()
 	async tracks(@Parent() album: Album) {
 		// FIXME: Solve the N+1 problem!
-		return this.tracksService.getByAlbumId(album.id);
+		return this.trackService.getByAlbumId(album.id);
 	}
 
 	@ResolveField()
 	async artist(@Parent() album: Album) {
 		// FIXME: Solve the N+1 problem!
-		return this.artistsService.getByAlbumId(album.id);
+		return this.artistService.getByAlbumId(album.id);
 	}
 
 	private static typeormAlbum2GQL(album: AlbumEntity): Album {

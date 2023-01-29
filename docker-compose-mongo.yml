@@ -1,3 +1,4 @@
+version: "3.9"
 services:
   mongo:
     image: mongo
@@ -11,3 +12,9 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=n0m3l0s3Imlevitating
       - MONGO_INITDB_DATABASE=test
     command: --auth
+    networks:
+      - webmock-net
+
+networks:
+  webmock-net:
+    external: true

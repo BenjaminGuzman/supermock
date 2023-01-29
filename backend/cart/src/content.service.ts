@@ -26,6 +26,9 @@ export class ContentService {
 						link
 						preview
 						price
+						album {
+							id
+						}
 					}
 				}`,
 				variables: {
@@ -33,6 +36,9 @@ export class ContentService {
 				},
 			}),
 		}).then((r) => r.json());
+
+		if (res.errors) throw new Error(res.errors[0].message);
+
 		return res.data.tracksById;
 	}
 
@@ -50,6 +56,9 @@ export interface Track {
 	link?: string;
 	preview?: string;
 	price: string;
+	album: {
+		id: string;
+	};
 }
 
 export interface Album {

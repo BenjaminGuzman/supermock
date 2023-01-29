@@ -1,3 +1,4 @@
+version: "3.9"
 services:
   postgres:
     image: postgres
@@ -9,3 +10,9 @@ services:
       - "./postgres/002-ddl.sql:/docker-entrypoint-initdb.d/002-ddl.sql"
     environment:
       - "POSTGRES_PASSWORD=pass"
+    networks:
+      - webmock-net
+
+networks:
+  webmock-net:
+    external: true

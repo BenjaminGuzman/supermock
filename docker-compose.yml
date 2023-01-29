@@ -95,7 +95,6 @@ services:
 networks:
   webmock-net:
     external: true
-    internal: true
   public-net:
     driver: bridge
-    #enable_ipv6: true
+    enable_ipv6: true
