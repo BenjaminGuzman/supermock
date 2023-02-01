@@ -35,7 +35,9 @@ type GQLCart {
   id: ID!
   total: String!
 
-  """Tracks in cart grouped by artist and album"""
+  """
+  Tracks in cart grouped by artist and album. This exists to ease the computation of subtotal prices (exact currency operations must be done in backend)
+  """
   artistsInCart: [ArtistInCart!]!
 
   """Tracks in cart. (Flat array, data is not grouped)"""

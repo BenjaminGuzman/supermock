@@ -71,7 +71,10 @@ export class GQLCart {
 	total: string;
 
 	@Field(() => [ArtistInCart], {
-		description: "Tracks in cart grouped by artist and album",
+		description:
+			"Tracks in cart grouped by artist and album. " +
+			"This exists to ease the computation of subtotal prices " +
+			"(exact currency operations must be done in backend)",
 	})
 	artistsInCart: ArtistInCart[];
 

@@ -2,7 +2,11 @@ import { Args, ID, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { AlbumInCart, ArtistInCart, GQLCart, TrackInCart } from "./cart.model";
 import { ExtractedJWTPayload } from "../auth/extracted-jwt-payload.decorator";
 import { JWTPayload } from "../auth/jwt-payload";
-import { BadRequestException, InternalServerErrorException, UseGuards } from "@nestjs/common";
+import {
+	BadRequestException,
+	InternalServerErrorException,
+	UseGuards,
+} from "@nestjs/common";
 import { AuthGuard } from "../auth/auth.guard";
 import { InjectModel } from "@nestjs/mongoose";
 import { CartMongoDoc, CartMongo } from "./cart.schema";
@@ -146,27 +150,39 @@ export class CartResolver {
 	}
 
 	private groupByArtist(cart: CartMongoDoc): ArtistInCart[] {
+		const artists = cart.tracksInCart.reduce(
+			(map, track) => map.set(track.album.artist.id, track.album.artist),
+			new Map<number, Artist>(),
+		);
+		const albums = cart.tracksInCart.reduce(
+			(map, track) => map.set(track.album.id, track.album),
+			new Map<number, Album>(),
+		);
+
 		// group by artist and album
-		const group = new Map<Artist, Map<Album, Track[]>>();
-		for (const populatedTrack of cart.tracksInCart) {
-			const artist = populatedTrack.album.artist;
-			if (!group.has(artist))
-				group.set(artist, new Map<Album, Track[]>());
+		const grouped = new Map<number, Map<number, Track[]>>(); // maps artist -> album -> tracks
+		// use ids instead of direct objects because objects are different as they come from different mongo objects
 
-			const album = populatedTrack.album;
-			if (!group.get(artist).has(album)) group.get(artist).set(album, []);
+		for (const track of cart.tracksInCart) {
+			const artistId = track.album.artist.id;
+			if (!grouped.has(artistId))
+				grouped.set(artistId, new Map<number, Track[]>());
 
-			group.get(artist).get(album).push(populatedTrack);
+			const albumId = track.album.id;
+			if (!grouped.get(artistId).has(albumId))
+				grouped.get(artistId).set(albumId, []);
+
+			grouped.get(artistId).get(albumId).push(track);
 		}
 
 		// convert grouped data to array
-		return Array.from(group.entries()).map(
-			([artist, groupedByAlbum]): ArtistInCart => {
+		return Array.from(grouped.entries()).map(
+			([artistId, groupedByAlbum]): ArtistInCart => {
 				const albumsInCart: AlbumInCart[] = Array.from(
 					groupedByAlbum.entries(),
 				).map(
-					([album, tracks]): AlbumInCart => ({
-						...album,
+					([albumId, tracks]): AlbumInCart => ({
+						...albums.get(albumId),
 						tracksInCart: tracks as unknown as TrackInCart[], // dateAdded DO exist in tracks
 						subtotal: tracks
 							.map((track) => track.price)
@@ -179,7 +195,7 @@ export class CartResolver {
 				);
 
 				return {
-					...artist,
+					...artists.get(artistId),
 					albumsInCart: albumsInCart,
 					subtotal: albumsInCart
 						.map((albumInCart) => albumInCart.subtotal)
