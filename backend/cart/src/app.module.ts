@@ -6,17 +6,16 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as Joi from "joi";
 import * as path from "path";
 import { GraphQLError, GraphQLFormattedError } from "graphql/error";
-import { CartService } from "./cart.service";
 import { ContentService } from "./content.service";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { CartResolver } from "./cart/cart.resolver";
 import { MongooseModule } from "@nestjs/mongoose";
-import { CartMongo, CartSchema } from "./cart/cart.schema";
+import { CartMongo, CartMongoSchema } from "./cart/cart.schema";
 
 @Module({
 	imports: [
 		MongooseModule.forFeature([
-			{ name: CartMongo.name, schema: CartSchema },
+			{ name: CartMongo.name, schema: CartMongoSchema },
 		]),
 		MongooseModule.forRootAsync({
 			imports: [ConfigModule],
@@ -40,9 +39,9 @@ import { CartMongo, CartSchema } from "./cart/cart.schema";
 					protoPath: path.join(__dirname, "auth/auth.proto"),
 					url: `${config.get("AUTH_HOST")}:${config.get("AUTH_PORT")}`,
 					loader: {
-						defaults: true
-					}
-				}
+						defaults: true,
+					},
+				},
 			}),
 		}]),
 		ConfigModule.forRoot({
@@ -99,6 +98,6 @@ import { CartMongo, CartSchema } from "./cart/cart.schema";
 		}),
 	],
 	controllers: [],
-	providers: [AppService, CartService, ContentService, CartResolver],
+	providers: [AppService, ContentService, CartResolver],
 })
 export class AppModule {}

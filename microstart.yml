@@ -15,6 +15,7 @@ services:
   - name: PostgreSQL
     start: sudo --stdin docker compose -f docker-compose-psql.yml up --remove-orphans # run microstart with sudo or this will break (but see comment below)
     stop: sudo --stdin docker compose -f docker-compose-psql.yml down
+    stopStdin: sudo-password.txt
     aliases:
       - psql
       - postgres
@@ -27,8 +28,9 @@ services:
       - Error response from daemon
 
   - name: MongoDB
-    start: sudo --stdin docker compose -f docker-compose-mongo.yml up
+    start: sudo --stdin docker compose -f docker-compose-mongo.yml up --remove-orphans
     stop: sudo --stdin docker compose -f docker-compose-mongo.yml down
+    stopStdin: sudo-password.txt
     aliases:
       - mongo
     color: 0x00ff00

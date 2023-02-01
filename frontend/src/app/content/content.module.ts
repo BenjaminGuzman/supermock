@@ -16,6 +16,7 @@ import {UtilsModule} from "../utils/utils.module";
 import {MatSelectModule} from "@angular/material/select";
 import {MatIconModule} from "@angular/material/icon";
 import {MatTooltipModule} from "@angular/material/tooltip";
+import {MatSnackBarModule} from "@angular/material/snack-bar";
 
 
 @NgModule({
@@ -41,6 +42,7 @@ import {MatTooltipModule} from "@angular/material/tooltip";
     MatCardModule,
     MatButtonModule,
     MatInputModule,
+    MatSnackBarModule,
     UtilsModule,
   ]
 })
