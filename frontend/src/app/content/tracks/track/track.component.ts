@@ -33,7 +33,11 @@ export class TrackComponent implements OnInit {
         subscription.unsubscribe();
 
         if (res.errors) {
-          this.snackBar.open(res.errors[0].message, "OK", {panelClass: "text-red-500"});
+          this.snackBar.open(res.errors[0].message, "OK", {
+            panelClass: "text-red-500",
+            horizontalPosition: "right",
+            verticalPosition: "top"
+          });
           console.error(res.errors);
           return;
         }
@@ -48,7 +52,9 @@ export class TrackComponent implements OnInit {
             "OK",
             {
               panelClass: "text-green-500",
-              duration: 5000
+              duration: 5000,
+              horizontalPosition: "right",
+              verticalPosition: "top"
             }
           );
         } else

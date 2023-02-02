@@ -2,7 +2,7 @@
 <div *ngIf="isLoading">
   <p>Loading...</p>
 </div>
-<div *ngIf="!isLoading">
+<div *ngIf="!isLoading" class="my-5">
   <div *ngIf="!cart" class="w-full md:w-1/2 lg:w-1/3 xl:w-1/4 px-5 mx-auto">
     <div class="text-center flex flex-col gap-5">
       <span>😱 Your shopping cart is empty!</span>
@@ -11,7 +11,168 @@
       </div>
     </div>
   </div>
-  <div *ngIf="cart">
-    <app-artists-in-cart></app-artists-in-cart>
+  <div *ngIf="cart" class="w-full md:w-5/6 px-5 mx-auto">
+    <mat-stepper orientation="horizontal" linear>
+      <!--      TODO: change color to match background-->
+      <mat-step>
+        <ng-template matStepLabel>
+          <div class="flex items-center justify-center gap-2">
+            <mat-icon>shopping_cart</mat-icon>
+            <span class="hidden md:block">Cart</span>
+          </div>
+        </ng-template>
+        <div class="flex justify-between items-center my-4">
+          <span class="text-xl">Total: ${{cart.total}} USD</span>
+          <button mat-raised-button class="flex items-center gap-3" matStepperNext>
+            <span>Payment details</span>
+            <mat-icon>navigate_next</mat-icon>
+          </button>
+        </div>
+        <p class="text-base sm:text-large">Review the items in your cart:</p>
+        <app-artists-in-cart [artistsInCart]="cart.artistsInCart"></app-artists-in-cart>
+      </mat-step>
+      <mat-step>
+        <ng-template matStepLabel>
+          <div class="flex items-center justify-center gap-2">
+            <mat-icon>payments</mat-icon>
+            <span class="hidden md:block">Payment</span>
+          </div>
+        </ng-template>
+        <div class="w-full my-4">
+          <p class="text-xl">Enter your payment details:</p>
+          <form class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 my-2">
+            <mat-form-field class="col-span-2" appearance="outline">
+              <mat-label>Name on card</mat-label>
+              <input matInput placeholder="María Irene Uribe Galván">
+            </mat-form-field>
+            <mat-form-field class="col-span-2" appearance="outline">
+              <mat-label>Card number</mat-label>
+              <input matInput placeholder="1234567890123456" class="pl-5">
+              <mat-icon matPrefix>credit_card</mat-icon>
+            </mat-form-field>
+            <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
+              <mat-label>Expiration date</mat-label>
+              <input matInput [matDatepicker]="expirationDatePicker">
+              <mat-hint>MM/DD/YYYY</mat-hint>
+              <mat-datepicker-toggle matSuffix [for]="expirationDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #expirationDatePicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
+              <mat-label>Security code</mat-label>
+              <input matInput placeholder="123">
+            </mat-form-field>
+            <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
+              <mat-label>Country</mat-label>
+              <mat-select>
+                <!-- TODO insert country name and image -->
+                <mat-option value="one">...</mat-option>
+                <mat-option value="two">...</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
+              <mat-label>Zip code</mat-label>
+              <input matInput placeholder="María Irene Uribe Galván">
+            </mat-form-field>
+          </form>
+          <div class="text-center font-light">
+            <p>We use 3-D Secure to protect your payments.</p>
+            <div class="flex flex-nowrap items-center justify-center gap-3">
+              <img alt="Visa Secure" style="max-height: 44px;" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQiIGhlaWdodD0iNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwKSI+CiAgICA8cGF0aCBkPSJNNDQuMDcuMDNILjA3djQzLjk5N0g0NC4wN1YuMDN6IiBmaWxsPSIjZmZmIi8+CiAgICA8cGF0aCBkPSJNNDMuMSAyMi4wM0gxLjA0MnYyMS4wMjhINDMuMVYyMi4wM3pNMTcuNDY1IDYuMThsLTQuMTMxIDkuODhoLTIuNzExTDguNTg1IDguMTc2Yy0uMTI1LS40ODUtLjIyMi0uNjY3LS42MDctLjg3YTEwLjcxMyAxMC43MTMgMCAwMC0yLjUyMi0uODRsLjA2LS4yODZoNC4zNDlhMS4xOTEgMS4xOTEgMCAwMTEuMTggMS4wMDdsMS4wNzUgNS43MTggMi42NjctNi43MjVoMi42Nzh6bTEwLjU4NyA2LjY2N2MwLTIuNjEtMy42MDUtMi43NTMtMy41OC0zLjkxOCAwLS4zNTMuMzQ0LS43MzEgMS4wODQtLjgyN2E0LjgwNiA0LjgwNiAwIDAxMi41Mi40NDVsLjQ0NC0yLjA5NmE2Ljg5IDYuODkgMCAwMC0yLjM4OC0uNDQ0Yy0yLjUzIDAtNC4zMDUgMS4zMzMtNC4zMiAzLjI2NC0uMDE2IDEuNDIyIDEuMjcgMi4yMjIgMi4yMzcgMi42OTEuOTY3LjQ3IDEuMzM0Ljc5NCAxLjMzNCAxLjIyNyAwIC42NjctLjc5NC45NTYtMS41MjcuOTY3YTUuMzM0IDUuMzM0IDAgMDEtMi42MzMtLjYzMWwtLjQ2NSAyLjE2NmMuOTA2LjM1MyAxLjg3LjUzMyAyLjg0My41MzEgMi42ODYgMCA0LjQ0NC0xLjMzMyA0LjQ0NC0zLjM4bC4wMDcuMDA1em02LjY2IDMuMjJoMi4zNjJMMzUuMDIzIDYuMThoLTIuMThhMS4xNjIgMS4xNjIgMCAwMC0xLjA5LjcyNWwtMy44MzUgOS4xNTVoMi42ODVsLjUzMy0xLjQ3NWgzLjI3OGwuMjk4IDEuNDgyem0tMi44NC0zLjUwN2wxLjM0NC0zLjcxLjc4NSAzLjcxaC0yLjEzem0tMTAuNzYtNi4zOGwtMi4xMDcgOS44OGgtMi41NmwyLjExMy05Ljg4aDIuNTU0eiIgZmlsbD0iIzFBMUY3MSIvPgogICAgPHBhdGggZD0iTTEwLjMyIDM0LjIyMmMuMzcuMjA2Ljc4NC4zMTUgMS4yMDcuMzE4LjU3NyAwIC45MDQtLjI3My45MDQtLjY4MiAwLS40MDktLjI1My0uNTk4LS44ODktLjgyOS0uODI5LS4yODktMS4zNTMtLjczMS0xLjM1My0xLjQ0MiAwLS44MjIuNjgtMS40MzYgMS43NzgtMS40MzYuNDEtLjAxLjgxNy4wNzQgMS4xOS4yNDVsLS4yMjIuNzRhMi4xNDIgMi4xNDIgMCAwMC0uOTkzLS4yNDdjLS41NzggMC0uODIyLjMwNC0uODIyLjYgMCAuMzg0LjI4OS41NjIuOTU2LjgxMy44NjQuMzM0IDEuMjguNzcxIDEuMjggMS40OCAwIC44MDctLjYwNyAxLjQ5Ni0xLjg4NyAxLjQ5NmEyLjk1NCAyLjk1NCAwIDAxLTEuMzU2LS4zMTFsLjIwNy0uNzQ1ek0xNi44ODkgMzIuOTkyaC0xLjg3NnYxLjQ2NmgyLjA5OHYuNzQ3aC0zLjAwN3YtNC45ODJoMi44OXYuNzQ2aC0ydjEuMjloMS44OTV2LjczM3pNMjEuNDE3IDM1LjA1NWEzLjI5IDMuMjkgMCAwMS0xLjI5NS4yMjNjLTEuNTg1IDAtMi41NDctLjk5Mi0yLjU0Ny0yLjUxIDAtMS42NDIgMS4xNS0yLjYyNiAyLjY2Ny0yLjYyNi40MTMtLjAxMy44MjUuMDYzIDEuMjA2LjIyMmwtLjE5My43MjdhMi40NDYgMi40NDYgMCAwMC0uOTc4LS4xOTNjLTEuMDEzIDAtMS43NDYuNjM3LTEuNzQ2IDEuODM1IDAgMS4wOTYuNjM4IDEuNzkxIDEuNzQgMS43OTEuMzM4LjAwMy42NzQtLjA1OC45OS0uMTc4bC4xNTYuNzF6TTIzLjAyNSAzMC4yMjN2Mi45MDljMCAuOTc3LjQwNiAxLjQyOCAxLjAyMiAxLjQyOC42NjYgMCAxLjA1LS40NDQgMS4wNS0xLjQyOHYtMi45MUgyNnYyLjg1YzAgMS41NC0uNzkzIDIuMjIyLTIgMi4yMjItMS4xNTUgMC0xLjkwNC0uNjQ1LTEuOTA0LTIuMjIydi0yLjg1aC45Mjl6TTI2Ljk3NyAzMC4yOWE3LjgzNCA3LjgzNCAwIDAxMS4zNzgtLjExMmMuNzE4IDAgMS4xOTguMTIgMS41NC40YTEuMjY3IDEuMjY3IDAgMDEuNDMgMS4wMDcgMS4zMTMgMS4zMTMgMCAwMS0uOTEyIDEuMjQ0di4wMjJjLjM2Mi4xMzQuNTc4LjQ4LjY5Ni45NjIuMTA0LjQ3MS4yMzUuOTM2LjM5MyAxLjM5MmgtLjkzM2E2LjQ0OCA2LjQ0OCAwIDAxLS4zMzQtMS4xNzhjLS4xNDYtLjY1MS0uMzc3LS44NTgtLjg4OS0uODczaC0uNDU3djIuMDVoLS45MTJWMzAuMjl6bS45MDUgMi4yaC41NGMuNjEzIDAgLjk5MS0uMzI4Ljk5MS0uODIzIDAtLjU0LS4zNzgtLjgtLjk2OS0uOGEyLjYwNCAyLjYwNCAwIDAwLS41NjIuMDQ0djEuNTc4ek0zMy45MDcgMzIuOTkyaC0xLjg4djEuNDY2aDIuMTAydi43NDdoLTMuMDE4di00Ljk4MmgyLjl2Ljc0NmgtMnYxLjI5aDEuODhsLjAxNi43MzN6IiBmaWxsPSIjZmZmIi8+CiAgPC9nPgogIDxkZWZzPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwMCI+CiAgICAgIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoNDR2NDRIMHoiLz4KICAgIDwvY2xpcFBhdGg+CiAgPC9kZWZzPgo8L3N2Zz4K">
+              <img alt="Mastercard SecureCode" style="max-height: 44px;" src="/assets/img/mastercard-securecode.svg">
+              <img alt="Discover ProtectBuy" style="max-height: 34px;" src="/assets/img/discover-protectbuy.jpg">
+              <img alt="American Express SafeKey" style="max-height: 44px;" src="/assets/img/amex-safekey.svg">
+            </div>
+            <p class="text-yellow-500 scale-y-[10%] hover:scale-y-100 transition-transform my-4">
+              <span>In case you were wondering, no... payments are not secure</span>
+              <br>
+              <span>But this payment page seems legit huh? 🤘</span>
+              <br>
+              <span class="font-medium">Never trust, always verify</span>
+              <br>
+              <span class="text-red-500 font-bold">Remember this is a mock application so don't enter any real information here!</span>
+              <br>
+              <span>Visa, Amex, Discover, Mastercard: Please don't sue the creator for trying to help people learn and take security seriously</span>
+            </p>
+          </div>
+          <div class="w-full flex justify-end">
+            <button mat-raised-button class="flex items-center gap-3" matStepperNext>
+              <span>Billing</span>
+              <mat-icon>navigate_next</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-step>
+      <mat-step>
+        <ng-template matStepLabel>
+          <div class="flex items-center justify-center gap-2">
+            <mat-icon>receipt_long</mat-icon>
+            <span class="hidden md:block">Billing</span>
+          </div>
+        </ng-template>
+        <form class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 my-2">
+          <mat-form-field class="col-span-2" appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput placeholder="María Irene Uribe Galván">
+          </mat-form-field>
+          <mat-form-field class="col-span-2" appearance="outline">
+            <mat-label>Address line 2</mat-label>
+            <input matInput placeholder="María Irene Uribe Galván">
+          </mat-form-field>
+          <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
+            <mat-label>Country</mat-label>
+            <mat-select>
+              <!-- TODO insert country name and image -->
+              <mat-option value="one">...</mat-option>
+              <mat-option value="two">...</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
+            <mat-label>State</mat-label>
+            <mat-select>
+              <!-- TODO insert state after country is selected -->
+              <mat-option value="one">...</mat-option>
+              <mat-option value="two">...</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
+            <mat-label>Zip code</mat-label>
+            <input matInput placeholder="María Irene Uribe Galván">
+          </mat-form-field>
+          <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput placeholder="María Irene Uribe Galván">
+          </mat-form-field>
+        </form>
+      </mat-step>
+      <mat-step>
+        <ng-template matStepLabel>
+          <div class="flex items-center justify-center gap-2">
+            <mat-icon>attach_money</mat-icon>
+            <span class="hidden md:block">Confirmation</span>
+          </div>
+        </ng-template>
+        <p class="text-xl">Order details:</p>
+        <table class="w-full mx-auto my-5">
+          <tr>
+            <td class="text-right">Total</td>
+            <td>${{cart.total}} USD</td>
+          </tr>
+          <tr>
+            <td class="text-right">Payment method</td>
+            <td>**1234</td>
+          </tr>
+          <tr>
+            <td class="text-right">Billing address</td>
+            <td>DASdshfosdhf,shdsfoi, sdiofhos, 489</td>
+          </tr>
+        </table>
+        <div class="w-full flex flex-col justify-center text-center gap-3">
+          <div>
+            <button mat-raised-button>Pay ${{cart.total}} now</button>
+          </div>
+          <span class="font-light">Payments are protected with TLS encryption and Moore, Dalley & Agur privacy laws</span>
+        </div>
+      </mat-step>
+    </mat-stepper>
   </div>
 </div>

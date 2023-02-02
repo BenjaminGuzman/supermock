@@ -54,6 +54,9 @@ type Mutation {
   """
   addTracks(ids: [ID!]!): GQLCart
 
+  """Delete tracks on user's cart. Returns the updated cart"""
+  deleteTracks(ids: [ID!]!): GQLCart!
+
   """Add all album's tracks to cart"""
   addAlbums(ids: [ID!]!): Int!
 

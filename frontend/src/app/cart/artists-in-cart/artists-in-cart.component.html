@@ -1,3 +1,44 @@
-<mat-accordion>
-
+<mat-accordion multi>
+  <mat-expansion-panel *ngFor="let artist of artistsInCart">
+    <mat-expansion-panel-header class="h-16">
+      <mat-panel-title>
+        <div class="flex justify-center items-center">
+          <img src="{{artist.picture}}" alt="" class="block max-h-16 p-2 pr-4 rounded-full">
+          <span class="text-xl sm:text-2xl hover:underline" routerLink="/content/artist/{{artist.id}}">{{artist.name}}</span>
+        </div>
+      </mat-panel-title>
+      <mat-panel-description>
+        <span class="font-medium">${{artist.subtotal}} USD</span>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <mat-accordion multi>
+      <mat-expansion-panel *ngFor="let album of artist.albumsInCart">
+        <mat-expansion-panel-header class="h-16">
+          <mat-panel-title>
+            <div class="flex justify-center items-center">
+              <img src="{{album.cover}}" alt="" class="block max-h-16 p-2 pr-4 rounded-full">
+              <span class="text-lg sm:text-xl hover:underline" routerLink="/content/album/{{album.id}}">{{album.title}}</span>
+            </div>
+          </mat-panel-title>
+          <mat-panel-description>
+            <span class="font-medium">${{album.subtotal}} USD</span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="flex flex-col gap-5 w-full">
+          <div class="flex justify-between items-center gap-5 w-full" *ngFor="let track of album.tracksInCart">
+            <div class="flex-grow flex flex-col">
+<!--                TODO add remove option-->
+              <span class="text-base sm:text-lg">{{track.title}}</span>
+              <audio src="{{track.preview}}" class="w-full" controls></audio>
+              <span class="text-xs sm:text-base">Added on {{track.dateAdded | date:"medium"}}</span>
+            </div>
+            <span class="font-medium">${{track.price}} USD</span>
+            <button mat-icon-button color="warn" (click)="removeTrack(track.id, album.id, artist.id)">
+              <mat-icon>remove_shopping_cart</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </mat-expansion-panel>
 </mat-accordion>

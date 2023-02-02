@@ -9,6 +9,11 @@ import {MatButtonModule} from "@angular/material/button";
 import { ArtistsInCartComponent } from './artists-in-cart/artists-in-cart.component';
 import { ArtistInCartComponent } from './artists-in-cart/artist-in-cart/artist-in-cart.component';
 import {MatExpansionModule} from "@angular/material/expansion";
+import {MatStepperModule} from "@angular/material/stepper";
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {MatInputModule} from "@angular/material/input";
+import {MatSelectModule} from "@angular/material/select";
+import {MatDatepickerModule} from "@angular/material/datepicker";
 
 @NgModule({
   declarations: [
@@ -23,7 +28,12 @@ import {MatExpansionModule} from "@angular/material/expansion";
     UtilsModule,
     MatIconModule,
     MatButtonModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatStepperModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule
   ]
 })
 export class CartModule { }

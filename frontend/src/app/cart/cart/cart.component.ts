@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {Apollo, gql} from "apollo-angular";
 import {Subscription} from "rxjs";
 import {NavItem} from "../../utils/header/header.component";
@@ -6,7 +6,8 @@ import {NavItem} from "../../utils/header/header.component";
 @Component({
   selector: 'app-cart',
   templateUrl: './cart.component.html',
-  styleUrls: ['./cart.component.scss']
+  styleUrls: ['./cart.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CartComponent implements OnInit {
   public navigation: NavItem[] = [{name: "Shopping cart", url: "/cart"}];
@@ -14,7 +15,7 @@ export class CartComponent implements OnInit {
 
   public cart?: Cart | null;
 
-  constructor(private apollo: Apollo) { }
+  constructor(private apollo: Apollo, private changeDetectorRef: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     const subscription: Subscription = this.apollo.query<{cart: Cart | null}>({
@@ -42,17 +43,22 @@ export class CartComponent implements OnInit {
             }
           }
         }
-      }`
+      }`,
+      fetchPolicy: "no-cache"
     }).subscribe({
       next: (res) => {
         this.isLoading = false;
+        this.changeDetectorRef.markForCheck();
         subscription.unsubscribe();
         if (!res.data.cart)
           return;
-        console.log(res);
+
+        this.cart = res.data.cart;
+        this.changeDetectorRef.markForCheck();
       },
       error: err => {
         this.isLoading = false;
+        this.changeDetectorRef.markForCheck();
         subscription.unsubscribe();
         console.error(err);
       },

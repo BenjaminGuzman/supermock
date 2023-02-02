@@ -60,15 +60,17 @@ export class ArtistService {
 	 */
 	async initialize(): Promise<boolean> {
 		const artists = [
-			"eminem",
 			"dua lipa",
+			"Siddhartha",
+			"Ruzzi",
+			"birdy",
+			"eminem",
+			"Natalia Lafourcade",
 			"residente",
 			"vico c",
-			"birdy",
 			"ana tijoux",
 			"Zoe",
 			"The chainsmokers",
-			"Natalia Lafourcade",
 			"Kygo",
 			"Florence + The Machine",
 			"M83",
@@ -90,7 +92,6 @@ export class ArtistService {
 			"C-kan",
 			"Adele",
 			"The Rocky Soloists & Orchestra",
-			"Siddhartha",
 		];
 
 		try {
@@ -179,7 +180,10 @@ export class ArtistService {
 				track.id = deezerTrack.id;
 				track.album = album;
 				track.preview = deezerTrack.preview;
-				track.price = `${Math.floor(Math.random() * 10 + 1)}`;
+				track.price =
+					Math.floor(Math.random() * 10) +
+					"." +
+					Math.floor(Math.random() * 100);
 
 				await this.tracksRepo
 					.save(track)
