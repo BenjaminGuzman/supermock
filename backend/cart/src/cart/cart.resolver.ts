@@ -112,8 +112,7 @@ export class CartResolver {
 
 	@Mutation(() => GQLCart, {
 		nullable: false,
-		description:
-			"Delete tracks on user's cart. " + "Returns the updated cart",
+		description: "Delete tracks on user's cart. Returns the updated cart",
 	})
 	async deleteTracks(
 		@Args("ids", { type: () => [ID], nullable: false })

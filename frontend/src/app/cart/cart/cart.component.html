@@ -12,8 +12,9 @@
     </div>
   </div>
   <div *ngIf="cart" class="w-full md:w-5/6 px-5 mx-auto">
-    <mat-stepper orientation="horizontal" linear>
+    <mat-stepper orientation="horizontal" [linear]="!canSkipSteps">
       <!--      TODO: change color to match background-->
+      <!-- STEP: Cart -->
       <mat-step>
         <ng-template matStepLabel>
           <div class="flex items-center justify-center gap-2">
@@ -31,7 +32,9 @@
         <p class="text-base sm:text-large">Review the items in your cart:</p>
         <app-artists-in-cart [artistsInCart]="cart.artistsInCart"></app-artists-in-cart>
       </mat-step>
-      <mat-step>
+
+      <!-- STEP: Payment -->
+      <mat-step [stepControl]="paymentForm">
         <ng-template matStepLabel>
           <div class="flex items-center justify-center gap-2">
             <mat-icon>payments</mat-icon>
@@ -40,49 +43,59 @@
         </ng-template>
         <div class="w-full my-4">
           <p class="text-xl">Enter your payment details:</p>
-          <form class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 my-2">
+          <form class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 my-2" [formGroup]="paymentForm">
             <mat-form-field class="col-span-2" appearance="outline">
               <mat-label>Name on card</mat-label>
-              <input matInput placeholder="María Irene Uribe Galván">
+              <input matInput placeholder="María Irene Uribe Galván" [formControl]="payFormCtrls.name">
+              <mat-error *ngIf="payFormCtrls.name.invalid">{{getErrorMsg(payFormCtrls.name, payFormConstraints.name, "Card holder's name")}}</mat-error>
             </mat-form-field>
             <mat-form-field class="col-span-2" appearance="outline">
               <mat-label>Card number</mat-label>
-              <input matInput placeholder="1234567890123456" class="pl-5">
+              <input matInput placeholder="1234567890123456" class="pl-5" [formControl]="payFormCtrls.card" (input)="hardRestrictLength(cardNumberInput, payFormConstraints.card.maxLength, $event)" #cardNumberInput>
               <mat-icon matPrefix>credit_card</mat-icon>
+              <mat-error *ngIf="payFormCtrls.card.invalid">{{getErrorMsg(payFormCtrls.card, payFormConstraints.card, "Card number")}}</mat-error>
             </mat-form-field>
             <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
               <mat-label>Expiration date</mat-label>
-              <input matInput [matDatepicker]="expirationDatePicker">
+              <input matInput [matDatepicker]="expirationDatePicker" [formControl]="payFormCtrls.expirationDate">
               <mat-hint>MM/DD/YYYY</mat-hint>
               <mat-datepicker-toggle matSuffix [for]="expirationDatePicker"></mat-datepicker-toggle>
               <mat-datepicker #expirationDatePicker></mat-datepicker>
+              <mat-error *ngIf="payFormCtrls.expirationDate.invalid">{{getErrorMsg(payFormCtrls.expirationDate, payFormConstraints.expirationDate, "Expiration date")}}</mat-error>
             </mat-form-field>
             <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
               <mat-label>Security code</mat-label>
-              <input matInput placeholder="123">
+              <input matInput placeholder="123" [formControl]="payFormCtrls.securityCode" (input)="hardRestrictLength(securityCodeInput, payFormConstraints.securityCode.maxLength, $event)" #securityCodeInput>
+              <mat-error *ngIf="payFormCtrls.securityCode.invalid">{{getErrorMsg(payFormCtrls.securityCode, payFormConstraints.securityCode, "Security code")}}</mat-error>
             </mat-form-field>
             <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
               <mat-label>Country</mat-label>
-              <mat-select>
-                <!-- TODO insert country name and image -->
-                <mat-option value="one">...</mat-option>
-                <mat-option value="two">...</mat-option>
-              </mat-select>
+              <input type="text" placeholder="Mexico" matInput [matAutocomplete]="countryAutocomplete" [formControl]="payFormCtrls.country">
+              <mat-autocomplete autoActiveFirstOption #countryAutocomplete="matAutocomplete">
+                <mat-option value="{{country.name}}" *ngFor="let country of filteredCountries | async">
+                  <div class="flex items-center gap-3">
+                    <img class="w-[32px] h-[24px] max-w-[32px] max-h-[24px]" src="{{country.image}}" alt="{{country.code}}">
+                    <span>{{country.name}}</span>
+                  </div>
+                </mat-option>
+              </mat-autocomplete>
+              <mat-error *ngIf="payFormCtrls.country.invalid">{{getErrorMsg(payFormCtrls.country, {}, "Country")}}</mat-error>
             </mat-form-field>
             <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
               <mat-label>Zip code</mat-label>
-              <input matInput placeholder="María Irene Uribe Galván">
+              <input matInput placeholder="07870" [formControl]="payFormCtrls.zipCode">
+              <mat-error *ngIf="payFormCtrls.zipCode.invalid">{{getErrorMsg(payFormCtrls.zipCode, payFormConstraints.zipCode, "Zip code")}}</mat-error>
             </mat-form-field>
           </form>
-          <div class="text-center font-light">
-            <p>We use 3-D Secure to protect your payments.</p>
+          <div class="text-center">
+            <p class="font-light">We use 3-D Secure to protect your payments.</p>
             <div class="flex flex-nowrap items-center justify-center gap-3">
               <img alt="Visa Secure" style="max-height: 44px;" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQiIGhlaWdodD0iNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwKSI+CiAgICA8cGF0aCBkPSJNNDQuMDcuMDNILjA3djQzLjk5N0g0NC4wN1YuMDN6IiBmaWxsPSIjZmZmIi8+CiAgICA8cGF0aCBkPSJNNDMuMSAyMi4wM0gxLjA0MnYyMS4wMjhINDMuMVYyMi4wM3pNMTcuNDY1IDYuMThsLTQuMTMxIDkuODhoLTIuNzExTDguNTg1IDguMTc2Yy0uMTI1LS40ODUtLjIyMi0uNjY3LS42MDctLjg3YTEwLjcxMyAxMC43MTMgMCAwMC0yLjUyMi0uODRsLjA2LS4yODZoNC4zNDlhMS4xOTEgMS4xOTEgMCAwMTEuMTggMS4wMDdsMS4wNzUgNS43MTggMi42NjctNi43MjVoMi42Nzh6bTEwLjU4NyA2LjY2N2MwLTIuNjEtMy42MDUtMi43NTMtMy41OC0zLjkxOCAwLS4zNTMuMzQ0LS43MzEgMS4wODQtLjgyN2E0LjgwNiA0LjgwNiAwIDAxMi41Mi40NDVsLjQ0NC0yLjA5NmE2Ljg5IDYuODkgMCAwMC0yLjM4OC0uNDQ0Yy0yLjUzIDAtNC4zMDUgMS4zMzMtNC4zMiAzLjI2NC0uMDE2IDEuNDIyIDEuMjcgMi4yMjIgMi4yMzcgMi42OTEuOTY3LjQ3IDEuMzM0Ljc5NCAxLjMzNCAxLjIyNyAwIC42NjctLjc5NC45NTYtMS41MjcuOTY3YTUuMzM0IDUuMzM0IDAgMDEtMi42MzMtLjYzMWwtLjQ2NSAyLjE2NmMuOTA2LjM1MyAxLjg3LjUzMyAyLjg0My41MzEgMi42ODYgMCA0LjQ0NC0xLjMzMyA0LjQ0NC0zLjM4bC4wMDcuMDA1em02LjY2IDMuMjJoMi4zNjJMMzUuMDIzIDYuMThoLTIuMThhMS4xNjIgMS4xNjIgMCAwMC0xLjA5LjcyNWwtMy44MzUgOS4xNTVoMi42ODVsLjUzMy0xLjQ3NWgzLjI3OGwuMjk4IDEuNDgyem0tMi44NC0zLjUwN2wxLjM0NC0zLjcxLjc4NSAzLjcxaC0yLjEzem0tMTAuNzYtNi4zOGwtMi4xMDcgOS44OGgtMi41NmwyLjExMy05Ljg4aDIuNTU0eiIgZmlsbD0iIzFBMUY3MSIvPgogICAgPHBhdGggZD0iTTEwLjMyIDM0LjIyMmMuMzcuMjA2Ljc4NC4zMTUgMS4yMDcuMzE4LjU3NyAwIC45MDQtLjI3My45MDQtLjY4MiAwLS40MDktLjI1My0uNTk4LS44ODktLjgyOS0uODI5LS4yODktMS4zNTMtLjczMS0xLjM1My0xLjQ0MiAwLS44MjIuNjgtMS40MzYgMS43NzgtMS40MzYuNDEtLjAxLjgxNy4wNzQgMS4xOS4yNDVsLS4yMjIuNzRhMi4xNDIgMi4xNDIgMCAwMC0uOTkzLS4yNDdjLS41NzggMC0uODIyLjMwNC0uODIyLjYgMCAuMzg0LjI4OS41NjIuOTU2LjgxMy44NjQuMzM0IDEuMjguNzcxIDEuMjggMS40OCAwIC44MDctLjYwNyAxLjQ5Ni0xLjg4NyAxLjQ5NmEyLjk1NCAyLjk1NCAwIDAxLTEuMzU2LS4zMTFsLjIwNy0uNzQ1ek0xNi44ODkgMzIuOTkyaC0xLjg3NnYxLjQ2NmgyLjA5OHYuNzQ3aC0zLjAwN3YtNC45ODJoMi44OXYuNzQ2aC0ydjEuMjloMS44OTV2LjczM3pNMjEuNDE3IDM1LjA1NWEzLjI5IDMuMjkgMCAwMS0xLjI5NS4yMjNjLTEuNTg1IDAtMi41NDctLjk5Mi0yLjU0Ny0yLjUxIDAtMS42NDIgMS4xNS0yLjYyNiAyLjY2Ny0yLjYyNi40MTMtLjAxMy44MjUuMDYzIDEuMjA2LjIyMmwtLjE5My43MjdhMi40NDYgMi40NDYgMCAwMC0uOTc4LS4xOTNjLTEuMDEzIDAtMS43NDYuNjM3LTEuNzQ2IDEuODM1IDAgMS4wOTYuNjM4IDEuNzkxIDEuNzQgMS43OTEuMzM4LjAwMy42NzQtLjA1OC45OS0uMTc4bC4xNTYuNzF6TTIzLjAyNSAzMC4yMjN2Mi45MDljMCAuOTc3LjQwNiAxLjQyOCAxLjAyMiAxLjQyOC42NjYgMCAxLjA1LS40NDQgMS4wNS0xLjQyOHYtMi45MUgyNnYyLjg1YzAgMS41NC0uNzkzIDIuMjIyLTIgMi4yMjItMS4xNTUgMC0xLjkwNC0uNjQ1LTEuOTA0LTIuMjIydi0yLjg1aC45Mjl6TTI2Ljk3NyAzMC4yOWE3LjgzNCA3LjgzNCAwIDAxMS4zNzgtLjExMmMuNzE4IDAgMS4xOTguMTIgMS41NC40YTEuMjY3IDEuMjY3IDAgMDEuNDMgMS4wMDcgMS4zMTMgMS4zMTMgMCAwMS0uOTEyIDEuMjQ0di4wMjJjLjM2Mi4xMzQuNTc4LjQ4LjY5Ni45NjIuMTA0LjQ3MS4yMzUuOTM2LjM5MyAxLjM5MmgtLjkzM2E2LjQ0OCA2LjQ0OCAwIDAxLS4zMzQtMS4xNzhjLS4xNDYtLjY1MS0uMzc3LS44NTgtLjg4OS0uODczaC0uNDU3djIuMDVoLS45MTJWMzAuMjl6bS45MDUgMi4yaC41NGMuNjEzIDAgLjk5MS0uMzI4Ljk5MS0uODIzIDAtLjU0LS4zNzgtLjgtLjk2OS0uOGEyLjYwNCAyLjYwNCAwIDAwLS41NjIuMDQ0djEuNTc4ek0zMy45MDcgMzIuOTkyaC0xLjg4djEuNDY2aDIuMTAydi43NDdoLTMuMDE4di00Ljk4MmgyLjl2Ljc0NmgtMnYxLjI5aDEuODhsLjAxNi43MzN6IiBmaWxsPSIjZmZmIi8+CiAgPC9nPgogIDxkZWZzPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwMCI+CiAgICAgIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoNDR2NDRIMHoiLz4KICAgIDwvY2xpcFBhdGg+CiAgPC9kZWZzPgo8L3N2Zz4K">
               <img alt="Mastercard SecureCode" style="max-height: 44px;" src="/assets/img/mastercard-securecode.svg">
               <img alt="Discover ProtectBuy" style="max-height: 34px;" src="/assets/img/discover-protectbuy.jpg">
               <img alt="American Express SafeKey" style="max-height: 44px;" src="/assets/img/amex-safekey.svg">
             </div>
-            <p class="text-yellow-500 scale-y-[10%] hover:scale-y-100 transition-transform my-4">
+            <p class="text-yellow-500 scale-y-[10%] hover:bg-black hover:scale-y-100 transition-transform my-4">
               <span>In case you were wondering, no... payments are not secure</span>
               <br>
               <span>But this payment page seems legit huh? 🤘</span>
@@ -95,13 +108,15 @@
             </p>
           </div>
           <div class="w-full flex justify-end">
-            <button mat-raised-button class="flex items-center gap-3" matStepperNext>
+            <button mat-raised-button class="flex items-center gap-3" matStepperNext [disabled]="paymentForm.invalid || !paymentForm.dirty">
               <span>Billing</span>
               <mat-icon>navigate_next</mat-icon>
             </button>
           </div>
         </div>
       </mat-step>
+
+      <!-- STEP: Billing -->
       <mat-step>
         <ng-template matStepLabel>
           <div class="flex items-center justify-center gap-2">
@@ -109,68 +124,87 @@
             <span class="hidden md:block">Billing</span>
           </div>
         </ng-template>
+        <div class="flex justify-between items-center my-4">
+          <p class="text-xl">Enter your billing details</p>
+          <button mat-raised-button class="flex items-center gap-3" matStepperNext>
+            <span>Pay</span>
+            <mat-icon>navigate_next</mat-icon>
+          </button>
+        </div>
+        <p class="text-large">A receipt will be sent to your email once you complete the purchase</p>
         <form class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 my-2">
           <mat-form-field class="col-span-2" appearance="outline">
             <mat-label>Address line 1</mat-label>
-            <input matInput placeholder="María Irene Uribe Galván">
+            <input matInput placeholder="Beautiful monads #777">
           </mat-form-field>
           <mat-form-field class="col-span-2" appearance="outline">
             <mat-label>Address line 2</mat-label>
-            <input matInput placeholder="María Irene Uribe Galván">
+            <input matInput placeholder="Apt. #000, second floor">
           </mat-form-field>
           <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
             <mat-label>Country</mat-label>
             <mat-select>
-              <!-- TODO insert country name and image -->
-              <mat-option value="one">...</mat-option>
-              <mat-option value="two">...</mat-option>
+              <mat-option *ngFor="let country of countries">
+                <div class="flex items-center gap-3">
+                  <img class="w-[32px] h-[24px] max-w-[32px] max-h-[24px]" src="{{country.image}}" alt="{{country.code}}">
+                  <span>{{country.name}}</span>
+                </div>
+              </mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
             <mat-label>State</mat-label>
-            <mat-select>
-              <!-- TODO insert state after country is selected -->
-              <mat-option value="one">...</mat-option>
-              <mat-option value="two">...</mat-option>
-            </mat-select>
+            <input matInput placeholder="Hessian">
           </mat-form-field>
           <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
             <mat-label>Zip code</mat-label>
-            <input matInput placeholder="María Irene Uribe Galván">
+            <input matInput placeholder="07870">
           </mat-form-field>
           <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
             <mat-label>Email</mat-label>
-            <input matInput placeholder="María Irene Uribe Galván">
+            <input matInput placeholder="definite.positive@matrix.org">
           </mat-form-field>
         </form>
       </mat-step>
+
+      <!-- STEP: Pay -->
       <mat-step>
         <ng-template matStepLabel>
-          <div class="flex items-center justify-center gap-2">
+          <div class="flex items-center justify-center gap-1">
             <mat-icon>attach_money</mat-icon>
-            <span class="hidden md:block">Confirmation</span>
+            <span class="hidden md:block">Pay</span>
           </div>
         </ng-template>
-        <p class="text-xl">Order details:</p>
-        <table class="w-full mx-auto my-5">
-          <tr>
-            <td class="text-right">Total</td>
-            <td>${{cart.total}} USD</td>
-          </tr>
-          <tr>
-            <td class="text-right">Payment method</td>
-            <td>**1234</td>
-          </tr>
-          <tr>
-            <td class="text-right">Billing address</td>
-            <td>DASdshfosdhf,shdsfoi, sdiofhos, 489</td>
-          </tr>
-        </table>
+        <p class="text-xl">Order summary:</p>
+        <div class="grid grid-cols-2 gap-3 my-2">
+          <p class="text-right font-medium">Songs in cart:</p>
+          <p>{{nItemsInCart}}</p>
+
+          <p class="text-right font-medium">Total:</p>
+          <p>${{cart.total}} USD</p>
+
+          <p class="text-right font-medium">Payment method:</p>
+          <p>**{{last4DigitsCard()}}</p>
+
+          <p class="text-right font-medium">Billing address:</p>
+          <p>DASdshfosdhf,shdsfoi, sdiofhos, 489</p>
+        </div>
         <div class="w-full flex flex-col justify-center text-center gap-3">
           <div>
             <button mat-raised-button>Pay ${{cart.total}} now</button>
           </div>
           <span class="font-light">Payments are protected with TLS encryption and Moore, Dalley & Agur privacy laws</span>
+          <p class="text-yellow-500 scale-y-[10%] hover:bg-black hover:scale-y-100 transition-transform transition-colors my-4">
+            <span>Remember this is a mock application</span>
+            <br>
+            <span>You won't be charged and from your payment information only the card last 4 digits will be sent to the server</span>
+            <br>
+            <span>Still, I hope you didn't entered any real card information, and remember:</span>
+            <br>
+            <span class="font-medium">Never trust, always verify</span>
+            <br>
+            <span>Oh... and obviously this is indeed protected by TLS, but Moore, Dalley & Agur are just the authors of a very nice book 😜</span>
+          </p>
         </div>
       </mat-step>
     </mat-stepper>

@@ -14,6 +14,8 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatInputModule} from "@angular/material/input";
 import {MatSelectModule} from "@angular/material/select";
 import {MatDatepickerModule} from "@angular/material/datepicker";
+import {MatAutocompleteModule} from "@angular/material/autocomplete";
+import {ReactiveFormsModule} from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -33,7 +35,9 @@ import {MatDatepickerModule} from "@angular/material/datepicker";
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatDatepickerModule
+    MatDatepickerModule,
+    MatAutocompleteModule,
+    ReactiveFormsModule
   ]
 })
 export class CartModule { }

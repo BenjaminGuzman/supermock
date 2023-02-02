@@ -26,6 +26,7 @@ services:
     stdin: sudo-password.txt # to avoid having your password in a plain text file, simply run "sudo echo" or something to store the password in cache
     errorPatterns:
       - Error response from daemon
+      - has no container to start
 
   - name: MongoDB
     start: sudo --stdin docker compose -f docker-compose-mongo.yml up --remove-orphans
@@ -40,6 +41,7 @@ services:
     stdin: sudo-password.txt
     errorPatterns:
       - Error response from daemon
+      - has no container to start
 
   - name: Users
     start: cd backend/users && npm run start:dev
@@ -48,6 +50,8 @@ services:
     color: 0xff00ff
     startedPatterns:
       - Nest application successfully started
+    errorPatterns:
+      - "Error: E"
 
   - name: Content
     aliases:
@@ -56,6 +60,8 @@ services:
     color: 0x00ff0f
     startedPatterns:
       - Nest application successfully started
+    errorPatterns:
+      - "Error: E"
 
   - name: Cart
     aliases:
@@ -65,6 +71,8 @@ services:
     color: 0x00ff0f
     startedPatterns:
       - Nest application successfully started
+    errorPatterns:
+      - "Error: E"
 
   - name: Auth
     aliases:
@@ -81,6 +89,39 @@ services:
     color: 0xf0f0f0
     startedPatterns:
       - Angular Live Development Server is listening
+
+  # backend configuration with no watch mode (no dev mode)
+  # useful to save resources in case you only work on frontend
+  - name: Users no watch
+    start: cd backend/users && npm run start
+    aliases:
+      - users-no-watch
+    color: 0xff00ff
+    startedPatterns:
+      - Nest application successfully started
+    errorPatterns:
+      - "Error: E"
+
+  - name: Content no watch
+    aliases:
+      - content-no-watch
+    start: cd backend/content && npm run start
+    color: 0x00ff0f
+    startedPatterns:
+      - Nest application successfully started
+    errorPatterns:
+      - "Error: E"
+
+  - name: Cart no watch
+    aliases:
+      - cart-no-watch
+      - shopping-cart-no-watch
+    start: cd backend/cart && npm run start
+    color: 0x00ff0f
+    startedPatterns:
+      - Nest application successfully started
+    errorPatterns:
+      - "Error: E"
 
 groups:
   - name: Frontend group
@@ -119,3 +160,22 @@ groups:
       - systemd-docker
     services:
       - Docker daemon
+
+  - name: Frontend minimal
+    aliases:
+      - frontend-minimal
+    services:
+      - frontend
+    dependencies:
+      - backend-no-watch
+
+  - name: Backend group without watch
+    aliases:
+      - backend-no-watch
+    services:
+      - content-no-watch
+      - users-no-watch
+      - auth
+      - cart-no-watch
+    dependencies:
+      - database
