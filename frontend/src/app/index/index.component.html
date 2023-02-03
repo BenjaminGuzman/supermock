@@ -18,7 +18,7 @@
           <p class="text-xl">Already a user?</p>
           <mat-form-field appearance="fill">
             <mat-label>Username</mat-label>
-            <input type="text" matInput [formControl]="loginControls.username">
+            <input type="text" placeholder="samsepi0l" matInput [formControl]="loginControls.username">
             <mat-error *ngIf="loginControls.username.invalid && (loginControls.username.dirty || loginControls.username.touched)">
               {{getLoginErrorMsg(loginControls.username, "username")}}
             </mat-error>
@@ -47,22 +47,22 @@
           <h2 class="text-center text-2xl font-medium">Register</h2>
           <mat-form-field appearance="fill">
             <mat-label>First name</mat-label>
-            <input type="text" matInput [formControl]="registerControls.firstName">
+            <input type="text" placeholder="Dua" matInput [formControl]="registerControls.firstName">
             <mat-error *ngIf="registerControls.firstName.invalid && (registerControls.firstName.dirty || registerControls.firstName.touched)">
               {{getRegistrationErrorMsg(registerControls.firstName, "firstName")}}
             </mat-error>
           </mat-form-field>
           <mat-form-field appearance="fill">
             <mat-label>Last name</mat-label>
-            <input type="text" matInput [formControl]="registerControls.lastName">
+            <input type="text" placeholder="Lipa" matInput [formControl]="registerControls.lastName">
             <mat-error *ngIf="registerControls.lastName.invalid && (registerControls.lastName.dirty || registerControls.lastName.touched)">
               {{getRegistrationErrorMsg(registerControls.lastName, "lastName")}}
             </mat-error>
           </mat-form-field>
           <mat-form-field appearance="fill">
             <mat-label>Date of birth</mat-label>
-            <input matInput [matDatepicker]="picker" [formControl]="registerControls.dob">
-            <mat-hint>MM/DD/YYYY</mat-hint>
+            <input matInput placeholder="22/08/1995" [matDatepicker]="picker" [formControl]="registerControls.dob">
+            <mat-hint>DD/MM/YYYY</mat-hint>
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="registerControls.dob.invalid && (registerControls.dob.dirty || registerControls.dob.touched)">
@@ -71,14 +71,14 @@
           </mat-form-field>
           <mat-form-field appearance="fill">
             <mat-label>Email</mat-label>
-            <input type="email" matInput [formControl]="registerControls.email">
+            <input type="email" placeholder="alan@turing.ai" matInput [formControl]="registerControls.email">
             <mat-error *ngIf="registerControls.email.invalid && (registerControls.email.dirty || registerControls.email.touched)">
               {{getRegistrationErrorMsg(registerControls.email, "email")}}
             </mat-error>
           </mat-form-field>
           <mat-form-field appearance="fill">
             <mat-label>Username</mat-label>
-            <input type="text" matInput [formControl]="registerControls.username">
+            <input type="text" placeholder="samsepi0l" matInput [formControl]="registerControls.username">
             <mat-error *ngIf="registerControls.username.invalid && (registerControls.username.dirty || registerControls.username.touched)">
               {{getRegistrationErrorMsg(registerControls.username, "username")}}
             </mat-error>

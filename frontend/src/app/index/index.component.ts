@@ -139,8 +139,8 @@ export class IndexComponent implements OnInit, AfterViewInit {
         this.registerControls.dob.setValue(iDate);
         this.registerControls.password.setValue(password);
         this.registerControls.passwordConfirmation.setValue(password);
-        this.registerControls.email.setValue("supertester@supertesting.com");
-        this.registerControls.firstName.setValue("Super Lewis");
+        this.registerControls.email.setValue("alan@turing.ai");
+        this.registerControls.firstName.setValue("Lewis");
         this.registerControls.lastName.setValue("Gauss");
         this.registerControls.username.setValue(username);
       }

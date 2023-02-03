@@ -52,13 +52,17 @@
             <mat-form-field class="col-span-2" appearance="outline">
               <mat-label>Card number</mat-label>
               <input matInput placeholder="1234567890123456" class="pl-5" [formControl]="payFormCtrls.card" (input)="hardRestrictLength(cardNumberInput, payFormConstraints.card.maxLength, $event)" #cardNumberInput>
-              <mat-icon matPrefix>credit_card</mat-icon>
+              <mat-icon matPrefix *ngIf="cardIcon === 'credit_card'">{{cardIcon}}</mat-icon>
+              <div matPrefix *ngIf="cardIcon !== 'credit_card'">
+                <img src="/assets/img/cards/{{cardIcon}}.svg" alt="{{cardIcon}}" width="24" class="mr-2">
+              </div>
+              <mat-hint>Enter a debit or credit card number</mat-hint>
               <mat-error *ngIf="payFormCtrls.card.invalid">{{getErrorMsg(payFormCtrls.card, payFormConstraints.card, "Card number")}}</mat-error>
             </mat-form-field>
             <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
               <mat-label>Expiration date</mat-label>
-              <input matInput [matDatepicker]="expirationDatePicker" [formControl]="payFormCtrls.expirationDate">
-              <mat-hint>MM/DD/YYYY</mat-hint>
+              <input matInput placeholder="13/01/2023" [matDatepicker]="expirationDatePicker" [formControl]="payFormCtrls.expirationDate">
+              <mat-hint>DD/MM/YYYY</mat-hint>
               <mat-datepicker-toggle matSuffix [for]="expirationDatePicker"></mat-datepicker-toggle>
               <mat-datepicker #expirationDatePicker></mat-datepicker>
               <mat-error *ngIf="payFormCtrls.expirationDate.invalid">{{getErrorMsg(payFormCtrls.expirationDate, payFormConstraints.expirationDate, "Expiration date")}}</mat-error>
@@ -108,7 +112,7 @@
             </p>
           </div>
           <div class="w-full flex justify-end">
-            <button mat-raised-button class="flex items-center gap-3" matStepperNext [disabled]="paymentForm.invalid || !paymentForm.dirty">
+            <button mat-raised-button class="flex items-center gap-3" matStepperNext [disabled]="paymentForm.invalid || paymentForm.pristine">
               <span>Billing</span>
               <mat-icon>navigate_next</mat-icon>
             </button>
@@ -126,43 +130,48 @@
         </ng-template>
         <div class="flex justify-between items-center my-4">
           <p class="text-xl">Enter your billing details</p>
-          <button mat-raised-button class="flex items-center gap-3" matStepperNext>
+          <button mat-raised-button class="flex items-center gap-3" matStepperNext [disabled]="billingForm.invalid || billingForm.pristine">
             <span>Pay</span>
             <mat-icon>navigate_next</mat-icon>
           </button>
         </div>
-        <p class="text-large">A receipt will be sent to your email once you complete the purchase</p>
         <form class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 my-2">
           <mat-form-field class="col-span-2" appearance="outline">
             <mat-label>Address line 1</mat-label>
-            <input matInput placeholder="Beautiful monads #777">
+            <input matInput placeholder="Beautiful monads #777" [formControl]="billingFormCtrls.address1">
+            <mat-error *ngIf="billingFormCtrls.address1.invalid">{{getErrorMsg(billingFormCtrls.address1, {})}}</mat-error>
           </mat-form-field>
           <mat-form-field class="col-span-2" appearance="outline">
             <mat-label>Address line 2</mat-label>
-            <input matInput placeholder="Apt. #000, second floor">
+            <input matInput placeholder="Apt. #000, second floor" [formControl]="billingFormCtrls.address2">
+            <mat-error *ngIf="billingFormCtrls.address2.invalid">{{getErrorMsg(billingFormCtrls.address2, {})}}</mat-error>
           </mat-form-field>
           <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
             <mat-label>Country</mat-label>
-            <mat-select>
-              <mat-option *ngFor="let country of countries">
+            <mat-select [formControl]="billingFormCtrls.country">
+              <mat-option *ngFor="let country of countries" [value]="country.name">
                 <div class="flex items-center gap-3">
                   <img class="w-[32px] h-[24px] max-w-[32px] max-h-[24px]" src="{{country.image}}" alt="{{country.code}}">
                   <span>{{country.name}}</span>
                 </div>
               </mat-option>
             </mat-select>
+            <mat-error *ngIf="billingFormCtrls.country.invalid">{{getErrorMsg(billingFormCtrls.country, {})}}</mat-error>
           </mat-form-field>
           <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
             <mat-label>State</mat-label>
-            <input matInput placeholder="Hessian">
+            <input matInput placeholder="Hessian" [formControl]="billingFormCtrls.state">
+            <mat-error *ngIf="billingFormCtrls.state.invalid">{{getErrorMsg(billingFormCtrls.state, {})}}</mat-error>
           </mat-form-field>
           <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
             <mat-label>Zip code</mat-label>
-            <input matInput placeholder="07870">
+            <input matInput placeholder="07870" [formControl]="billingFormCtrls.zipCode">
+            <mat-error *ngIf="billingFormCtrls.zipCode.invalid">{{getErrorMsg(billingFormCtrls.zipCode, {})}}</mat-error>
           </mat-form-field>
           <mat-form-field class="col-span-2 sm:col-span-1" appearance="outline">
             <mat-label>Email</mat-label>
-            <input matInput placeholder="definite.positive@matrix.org">
+            <input matInput placeholder="definite.positive@matrix.org" [formControl]="billingFormCtrls.email">
+            <mat-error *ngIf="billingFormCtrls.email.invalid">{{getErrorMsg(billingFormCtrls.email, {})}}</mat-error>
           </mat-form-field>
         </form>
       </mat-step>
@@ -187,7 +196,13 @@
           <p>**{{last4DigitsCard()}}</p>
 
           <p class="text-right font-medium">Billing address:</p>
-          <p>DASdshfosdhf,shdsfoi, sdiofhos, 489</p>
+          <p>
+            <span>{{billingFormCtrls.address1.value}}</span>,&nbsp;
+            <span *ngIf="billingFormCtrls.address2.value">{{billingFormCtrls.address2.value}},&nbsp;</span>
+            <span *ngIf="billingFormCtrls.state.value">{{billingFormCtrls.state.value}}</span>,&nbsp;
+            <span *ngIf="billingFormCtrls.country.value">{{billingFormCtrls.country.value}}</span>,&nbsp;
+            <span *ngIf="billingFormCtrls.zipCode.value">zip code: {{billingFormCtrls.zipCode.value}}</span>
+          </p>
         </div>
         <div class="w-full flex flex-col justify-center text-center gap-3">
           <div>

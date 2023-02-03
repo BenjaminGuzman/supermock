@@ -6,6 +6,7 @@ import {NavItem} from "../../utils/header/header.component";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {Validators2} from "./Validators2";
 import {environment} from "../../../environments/environment";
+import cardValidator from "card-validator";
 
 @Component({
   selector: 'app-cart',
@@ -22,6 +23,12 @@ export class CartComponent implements OnInit {
   public countries: Country[] = [];
 
   public filteredCountries: Observable<Country[]>;
+
+  public cardIcon = "credit_card";/*{
+    '': "credit_cart",
+    visa: "<img src='' alt='visa' width='12'/>",
+    amex: "<img src='/assets/img/cards/amex.svg' alt='amex' width='12'/>",
+  };*/
 
   public paymentForm: FormGroup;
 
@@ -41,7 +48,7 @@ export class CartComponent implements OnInit {
     },
     card: {
       minLength: 4,
-      maxLength: 18
+      maxLength: 23
     },
     securityCode: {
       minLength: 3,
@@ -57,7 +64,55 @@ export class CartComponent implements OnInit {
         end: new Date(new Date().setFullYear(new Date().getFullYear() + 10))
       }
     }
-  }
+  };
+
+  public billingForm: FormGroup;
+
+  public billingFormConstraints = {
+    address1: {
+      minLength: 4,
+      maxLength: 50
+    },
+    address2: {
+      minLength: 4,
+      maxLength: 50
+    },
+    securityCode: {
+      minLength: 3,
+      maxLength: 4
+    },
+    zipCode: {
+      minLength: 3,
+      maxLength: 10
+    },
+    expirationDate: {
+      between: {
+        start: new Date(),
+        end: new Date(new Date().setFullYear(new Date().getFullYear() + 10))
+      }
+    }
+  };
+
+  public billingFormCtrls = {
+    address1: new FormControl(null, [
+      Validators.required,
+    ]),
+    address2: new FormControl(null, []),
+    country: new FormControl(null, [
+      Validators.required,
+    ]),
+    state: new FormControl(null, [
+      Validators.required,
+    ]),
+    zipCode: new FormControl(null, [
+      Validators.required,
+      Validators2.digitsOnly(true)
+    ]),
+    email: new FormControl(null, [
+      Validators.required,
+      Validators.email
+    ]),
+  };
 
   public canSkipSteps = !environment.production;
 
@@ -74,7 +129,7 @@ export class CartComponent implements OnInit {
       card: new FormControl(null, [
         Validators.required,
         Validators2.digitsOnly(true),
-        Validators.maxLength(this.payFormConstraints.card.maxLength),
+        // Validators.maxLength(this.payFormConstraints.card.maxLength),
         Validators2.card
       ]),
       expirationDate: new FormControl(null, [
@@ -91,7 +146,7 @@ export class CartComponent implements OnInit {
         Validators.required,
         Validators2.digitsOnly(true),
         Validators.minLength(this.payFormConstraints.securityCode.minLength),
-        Validators.maxLength(this.payFormConstraints.securityCode.maxLength),
+        // Validators.maxLength(this.payFormConstraints.securityCode.maxLength),
       ]),
       zipCode: new FormControl(null, [
         Validators.required,
@@ -102,6 +157,22 @@ export class CartComponent implements OnInit {
     };
     this.paymentForm = new FormGroup(this.payFormCtrls);
 
+    this.billingForm = new FormGroup(this.billingFormCtrls);
+
+    this.payFormCtrls.card.valueChanges.pipe(
+      map(value => {
+        if (!value) {
+          this.cardIcon = "credit_card";
+          return;
+        }
+
+        const validation = cardValidator.number(value);
+        if (validation.card)
+          this.cardIcon = validation.card.type;
+      }),
+      map(() => this.changeDetectorRef.markForCheck())
+    ).subscribe();
+
     this.countries = countries.getData().map(c => ({
       name: c.name,
       image: `/assets/img/countries/${c.code}.png`,
@@ -111,14 +182,15 @@ export class CartComponent implements OnInit {
       startWith(''),
       map((search) => {
         if (!search)
-          return [];
-
-        /*if (search.length < 2)
-          return this.countries;*/
+          return this.countries;
 
         const searchLower = search.toLowerCase();
-        return this.countries.filter(country => country.name.toLowerCase().includes(searchLower));
+        return this.countries.filter(country => country.name.toLowerCase().includes(searchLower))
+          // put countries that start with the search term at the beginning
+          // and, put countries that end with the search term at the end
+          .sort((a, b) => a.name.toLowerCase().indexOf(searchLower) - b.name.toLowerCase().indexOf(searchLower));
       }),
+      map((results) => results.slice(0, 20)) // return first 20 results only
     );
   }
 
@@ -180,6 +252,9 @@ export class CartComponent implements OnInit {
 
     if (["maxLength", "maxlength"].some(errName => control.hasError(errName)))
       return `Maximum length is ${constraints["maxLength"]}`;
+
+    if (control.hasError("email"))
+      return "Invalid email";
 
     if (control.hasError("digitsOnly"))
       return "Only digits are allowed";

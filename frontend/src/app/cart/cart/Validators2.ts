@@ -5,7 +5,7 @@ export class Validators2 {
   private static _digitsOnly(value?: string): ValidationErrors | null {
     if (value && /^[0-9]+/.test(value))
       return null;
-    return {numbersOnly: true};
+    return {digitsOnly: true};
   }
 
   private static digitsOnlyNoTrim(control: AbstractControl): ValidationErrors | null {
@@ -29,6 +29,7 @@ export class Validators2 {
 
   static card(control: AbstractControl): ValidationErrors | null {
     const cardNo: string = control.value;
+    //cardValidator.number(cardNo).card?.type
     if (cardNo && !cardValidator.number(cardNo).isValid)
       return {card: true};
     return null;
