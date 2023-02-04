@@ -1,5 +1,13 @@
 import { Args, ID, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
-import { AlbumInCart, ArtistInCart, GQLCart, TrackInCart } from "./cart.model";
+import {
+	AlbumInCart,
+	ArtistInCart,
+	GQLCart,
+	PaymentInput,
+	GQLPurchase,
+	PurchaseInput,
+	TrackInCart,
+} from "./cart.model";
 import { ExtractedJWTPayload } from "../auth/extracted-jwt-payload.decorator";
 import { JWTPayload } from "../auth/jwt-payload";
 import {
@@ -9,7 +17,12 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "../auth/auth.guard";
 import { InjectModel } from "@nestjs/mongoose";
-import { CartMongoDoc, CartMongo } from "./cart.schema";
+import {
+	CartMongo,
+	CartMongoDoc,
+	PurchaseMongo,
+	PurchaseMongoDoc,
+} from "./cart.schema";
 import { Model } from "mongoose";
 import { ContentService } from "../content.service";
 import Decimal from "decimal.js";
@@ -21,7 +34,10 @@ import { Album } from "../content/album";
 @UseGuards(AuthGuard)
 export class CartResolver {
 	constructor(
-		@InjectModel(CartMongo.name) private cartModel: Model<CartMongoDoc>,
+		@InjectModel(CartMongo.name)
+		private cartModel: Model<CartMongoDoc>,
+		@InjectModel(PurchaseMongo.name)
+		private purchaseModel: Model<PurchaseMongoDoc>,
 		private contentService: ContentService,
 	) {}
 
@@ -30,7 +46,13 @@ export class CartResolver {
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	): Promise<GQLCart> {
 		const userId = jwtPayload.userId;
-		const cart = await this.cartModel.findOne({ userId: userId });
+		let cart: CartMongoDoc;
+		try {
+			cart = await this.cartModel.findOne({ userId: userId });
+		} catch (e) {
+			console.error("Failed to retrieve cart", e);
+			throw new InternalServerErrorException("Failed to retrieve cart");
+		}
 		// console.log(cart);
 
 		if (!cart) return null;
@@ -160,6 +182,82 @@ export class CartResolver {
 		return 0;
 	}
 
+	// TODO purchase mutation
+	//  validate card
+	@Mutation(() => GQLCart, {
+		description:
+			"Purchase the user's shopping cart. " +
+			"Returns the shopping cart on success or null on failure",
+		nullable: true,
+	})
+	async purchase(
+		@Args("details", { type: () => PaymentInput, nullable: false })
+		details: PurchaseInput,
+		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
+	): Promise<GQLCart> {
+		let cart: CartMongoDoc;
+		try {
+			cart = await this.cartModel.findOne({ userId: jwtPayload.userId });
+		} catch (e) {
+			console.error("Failed to find user's cart", e);
+			throw new InternalServerErrorException("Failed to find cart");
+		}
+		if (!cart || cart.tracksInCart.length === 0)
+			throw new BadRequestException("Cart is empty");
+
+		let cartResult: CartMongoDoc;
+		let purchaseResult: PurchaseMongoDoc[];
+		try {
+			const cartRemovalPromise = cart.remove();
+			const purchaseInsertionPromise = this.purchaseModel.insertMany({
+				userId: jwtPayload.userId,
+				purchaseDate: new Date(),
+				billing: details.billing,
+				cart: cart,
+			});
+			[cartResult, purchaseResult] = await Promise.all([
+				cartRemovalPromise,
+				purchaseInsertionPromise,
+			]);
+		} catch (e) {
+			// make this operation atomic, 🤞 let's hope no error is thrown here
+			// yes, ignore promises results
+			cart.save();
+			purchaseResult.map((purchase) => purchase.remove());
+
+			console.error("Failed to insert a purchase", e);
+			throw new InternalServerErrorException("Failed to finish purchase");
+		}
+		return null;
+	}
+
+	@Query(() => [GQLPurchase], { nullable: true })
+	async purchases(
+		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
+	): Promise<GQLPurchase[]> {
+		const userId = jwtPayload.userId;
+		let purchases: PurchaseMongoDoc[];
+		try {
+			purchases = await this.purchaseModel.find({ userId: userId });
+			return Promise.all(
+				purchases.map(async (purchase) => ({
+					purchaseDate: purchase.purchaseDate.toISOString(),
+					email: purchase.billing.email,
+					cart: await this.mongoCart2GQL({
+						_id: "",
+						...purchase.cart,
+					} as unknown as CartMongoDoc),
+				})),
+			);
+		} catch (e) {
+			console.error("Failed to retrieve purchase history", e);
+			throw new InternalServerErrorException("Failed to retrieve data");
+		}
+	}
+
+	// TODO purchase invoice query
+	//  add catpcha challenge, https://pkg.go.dev/github.com/dchest/captcha#section-readme
+
 	private async mongoCart2GQL(cart: CartMongoDoc): Promise<GQLCart> {
 		const groupedByArtist: ArtistInCart[] = this.groupByArtist(cart);
 		return {
@@ -177,7 +275,7 @@ export class CartResolver {
 		};
 	}
 
-	private groupByArtist(cart: CartMongoDoc): ArtistInCart[] {
+	private groupByArtist(cart: CartMongo): ArtistInCart[] {
 		const artists = cart.tracksInCart.reduce(
 			(map, track) => map.set(track.album.artist.id, track.album.artist),
 			new Map<number, Artist>(),

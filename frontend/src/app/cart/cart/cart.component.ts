@@ -7,6 +7,8 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {Validators2} from "./Validators2";
 import {environment} from "../../../environments/environment";
 import cardValidator from "card-validator";
+import {MatSnackBar} from "@angular/material/snack-bar";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-cart',
@@ -118,7 +120,12 @@ export class CartComponent implements OnInit {
 
   private _nItemsInCart: number = 0;
 
-  constructor(private apollo: Apollo, private changeDetectorRef: ChangeDetectorRef) {
+  constructor(
+    private apollo: Apollo,
+    private changeDetectorRef: ChangeDetectorRef,
+    private snackBar: MatSnackBar,
+    private activeRoute: ActivatedRoute
+  ) {
     this.payFormCtrls = {
       name: new FormControl(null, [
         Validators.required,
@@ -238,6 +245,65 @@ export class CartComponent implements OnInit {
         this.changeDetectorRef.markForCheck();
         subscription.unsubscribe();
         console.error(err);
+      },
+      complete: () => subscription.unsubscribe()
+    });
+  }
+
+  public submit() {
+    const subscription: Subscription = this.apollo.mutate<{purchase: {total: string}}>({
+      mutation: gql`mutation purchase($purchaseDetails: PurchaseInput!) {
+        purchase(details: $purchaseDetails) {
+          total
+        }
+      }`,
+      variables: {
+        purchaseDetails: {
+          payment: { // payment details are ignored anyway
+            cardNumber: "",
+            cardHolderName: "",
+            country: "",
+            zipCode: "",
+            expirationDate: "",
+            cvv: "",
+          },
+          billing: {
+            address1: this.billingFormCtrls.address1.value,
+            address2: this.billingFormCtrls.address2?.value || undefined,
+            country: this.billingFormCtrls.country,
+            zipCode: this.billingFormCtrls.zipCode,
+            email: this.billingFormCtrls.email,
+          }
+        }
+      },
+      fetchPolicy: "no-cache"
+    }).subscribe({
+      next: (res) => {
+        subscription.unsubscribe();
+        if (!res.data?.purchase) {
+          this.snackBar.open("Sorry 🥴. Couldn't complete purchase. Try again", "OK", {panelClass: "text-red-500"});
+          return;
+        }
+        const sub = this.snackBar.open(
+          "Purchase completed successfully. Thanks! Enjoy your music 🥰🎶",
+          "OK",
+          {
+            panelClass: "text-green-500",
+            duration: 5000,
+            horizontalPosition: "right",
+            verticalPosition: "top"
+          }
+        )
+          .afterDismissed()
+          .subscribe((val) => {
+            sub.unsubscribe();
+            this.ngOnInit();
+          });
+      },
+      error: err => {
+        subscription.unsubscribe();
+        console.error(err);
+        this.snackBar.open("Sorry 🥴. Couldn't complete purchase. Try again", "OK", {panelClass: "text-red-500"});
       },
       complete: () => subscription.unsubscribe()
     });

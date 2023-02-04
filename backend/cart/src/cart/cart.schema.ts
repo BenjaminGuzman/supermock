@@ -80,5 +80,40 @@ export class CartMongo {
 	tracksInCart: TrackInCart[];
 }
 
+export class BillingMongo {
+	@Prop({ required: true, description: "Address line 1" })
+	address1: string;
+
+	@Prop({ required: false, description: "Address line 2" })
+	address2?: string;
+
+	@Prop({ required: true, description: "ISO 3166 alpha-2 country code" })
+	country: string;
+
+	@Prop({ required: true, description: "Zip code" })
+	zipCode: string;
+
+	@Prop({ required: true })
+	email: string;
+}
+
+@Schema()
+export class PurchaseMongo {
+	@Prop({ required: true })
+	userId: string;
+
+	@Prop({ required: true, type: Date })
+	purchaseDate: Date;
+
+	@Prop({ required: true, type: BillingMongo })
+	billing: BillingMongo;
+
+	@Prop({ required: true, type: CartMongo })
+	cart: CartMongo;
+}
+
 export const CartMongoSchema = SchemaFactory.createForClass(CartMongo);
 export type CartMongoDoc = HydratedDocument<CartMongo>;
+
+export const PurchaseMongoSchema = SchemaFactory.createForClass(PurchaseMongo);
+export type PurchaseMongoDoc = HydratedDocument<PurchaseMongo>;

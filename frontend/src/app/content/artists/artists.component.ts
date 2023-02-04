@@ -34,7 +34,8 @@ export class ArtistsComponent implements OnInit {
 
   private fetchArtists() {
     const subscription: Subscription = this.apollo.query<{artistSearch: Artist[]}>({
-      query: this.artistQuery
+      query: this.artistQuery,
+      fetchPolicy: "network-only"
     }).subscribe({
       next: (res) => {
         subscription.unsubscribe();

@@ -31,7 +31,7 @@ type ArtistInCart {
   subtotal: String!
 }
 
-type GQLCart {
+type Cart {
   id: ID!
   total: String!
 
@@ -44,22 +44,59 @@ type GQLCart {
   tracksInCart: [TrackInCart!]!
 }
 
+type Purchase {
+  """ISO-8601 formatted date"""
+  purchaseDate: String!
+  cart: Cart!
+
+  """Email registered in billing information when purchase was completed"""
+  email: String!
+}
+
 type Query {
-  cart: GQLCart
+  cart: Cart
+  purchases: [Purchase!]
 }
 
 type Mutation {
   """
   Add tracks to the user cart. Returns the updated cart or null if at least one track id was invalid (or it was already in cart)
   """
-  addTracks(ids: [ID!]!): GQLCart
+  addTracks(ids: [ID!]!): Cart
 
   """Delete tracks on user's cart. Returns the updated cart"""
-  deleteTracks(ids: [ID!]!): GQLCart!
+  deleteTracks(ids: [ID!]!): Cart!
 
   """Add all album's tracks to cart"""
   addAlbums(ids: [ID!]!): Int!
 
   """Add all artist's tracks to cart"""
   addArtists(ids: [ID!]!): Int!
+
+  """
+  Purchase the user's shopping cart. Returns the shopping cart on success or null on failure
+  """
+  purchase(details: PaymentInput!): Cart
+}
+
+input PaymentInput {
+  """Field is ignored. You can assign an empty string"""
+  cardNumber: String!
+
+  """Field is ignored. You can assign an empty string"""
+  cardHolderName: String!
+
+  """Field is ignored. You can assign an empty string"""
+  country: String!
+
+  """Field is ignored. You can assign an empty string"""
+  zipCode: String!
+
+  """
+  ISO-8601 formatted date. Field is ignored. You can assign an empty string
+  """
+  expirationDate: String!
+
+  """Field is ignored. You can assign an empty string"""
+  cvv: Float!
 }

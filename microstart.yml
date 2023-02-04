@@ -51,7 +51,7 @@ services:
     startedPatterns:
       - Nest application successfully started
     errorPatterns:
-      - "Error: E"
+      - "Error:"
 
   - name: Content
     aliases:
@@ -61,7 +61,7 @@ services:
     startedPatterns:
       - Nest application successfully started
     errorPatterns:
-      - "Error: E"
+      - "Error:"
 
   - name: Cart
     aliases:
@@ -72,7 +72,7 @@ services:
     startedPatterns:
       - Nest application successfully started
     errorPatterns:
-      - "Error: E"
+      - "Error:"
 
   - name: Auth
     aliases:
@@ -100,7 +100,7 @@ services:
     startedPatterns:
       - Nest application successfully started
     errorPatterns:
-      - "Error: E"
+      - "Error:"
 
   - name: Content no watch
     aliases:
@@ -110,7 +110,7 @@ services:
     startedPatterns:
       - Nest application successfully started
     errorPatterns:
-      - "Error: E"
+      - "Error:"
 
   - name: Cart no watch
     aliases:
@@ -121,7 +121,7 @@ services:
     startedPatterns:
       - Nest application successfully started
     errorPatterns:
-      - "Error: E"
+      - "Error:"
 
 groups:
   - name: Frontend group

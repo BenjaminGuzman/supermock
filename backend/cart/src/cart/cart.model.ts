@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
+import { Field, ID, InputType, Int, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 export class TrackInCart {
@@ -62,7 +62,7 @@ export class ArtistInCart {
 	subtotal: string;
 }
 
-@ObjectType()
+@ObjectType("Cart")
 export class GQLCart {
 	@Field(() => ID)
 	id: string;
@@ -82,4 +82,70 @@ export class GQLCart {
 		description: "Tracks in cart. (Flat array, data is not grouped)",
 	})
 	tracksInCart: TrackInCart[];
+}
+
+@InputType()
+export class PaymentInput {
+	@Field({ description: "Field is ignored. You can assign an empty string" })
+	cardNumber: string;
+
+	@Field({ description: "Field is ignored. You can assign an empty string" })
+	cardHolderName: string;
+
+	@Field({ description: "Field is ignored. You can assign an empty string" })
+	country: string;
+
+	@Field({ description: "Field is ignored. You can assign an empty string" })
+	zipCode: string;
+
+	@Field({
+		description:
+			"ISO-8601 formatted date. Field is ignored. You can assign an empty string",
+	})
+	expirationDate: string;
+
+	@Field({ description: "Field is ignored. You can assign an empty string" })
+	cvv: number;
+}
+
+@InputType()
+export class BillingInput {
+	@Field({ description: "Address line 1" })
+	address1: string;
+
+	@Field({ description: "Address line 2" })
+	address2?: string;
+
+	@Field({ description: "ISO 3166 alpha-2 country code" })
+	country: string;
+
+	@Field({ description: "Zip code" })
+	zipCode: string;
+
+	@Field()
+	email: string;
+}
+
+@InputType()
+export class PurchaseInput {
+	@Field(() => PaymentInput)
+	payment: PaymentInput;
+
+	@Field(() => BillingInput)
+	billing: BillingInput;
+}
+
+@ObjectType("Purchase")
+export class GQLPurchase {
+	@Field({ description: "ISO-8601 formatted date" })
+	purchaseDate: string;
+
+	@Field(() => GQLCart)
+	cart: GQLCart;
+
+	@Field({
+		description:
+			"Email registered in billing information when purchase was completed",
+	})
+	email: string;
 }

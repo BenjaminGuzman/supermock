@@ -16,12 +16,17 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatAutocompleteModule} from "@angular/material/autocomplete";
 import {ReactiveFormsModule} from "@angular/forms";
+import { PurchaseHistoryComponent } from './purchase-history/purchase-history.component';
+import { CartIndexComponent } from './cart-index/cart-index.component';
+import {MatSnackBarModule} from "@angular/material/snack-bar";
 
 @NgModule({
   declarations: [
     CartComponent,
     ArtistsInCartComponent,
-    ArtistInCartComponent
+    ArtistInCartComponent,
+    PurchaseHistoryComponent,
+    CartIndexComponent
   ],
   imports: [
     CommonModule,
@@ -37,7 +42,8 @@ import {ReactiveFormsModule} from "@angular/forms";
     MatSelectModule,
     MatDatepickerModule,
     MatAutocompleteModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatSnackBarModule,
   ]
 })
 export class CartModule { }

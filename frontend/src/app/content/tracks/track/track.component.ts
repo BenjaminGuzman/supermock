@@ -58,11 +58,11 @@ export class TrackComponent implements OnInit {
             }
           );
         } else
-          this.snackBar.open("Couldn't add track. sorry 🥴", "OK", {panelClass: "text-red-500"});
+          this.snackBar.open("Couldn't add track. Sorry 🥴", "OK", {panelClass: "text-red-500"});
       },
       error: (err: Error) => {
         subscription.unsubscribe();
-        this.snackBar.open("Failed to add tracks, sorry 🥴", "OK", {panelClass: "text-red-500"});
+        this.snackBar.open("Failed to add tracks. Sorry 🥴", "OK", {panelClass: "text-red-500"});
         console.error(err);
       },
       complete: () => subscription.unsubscribe()
