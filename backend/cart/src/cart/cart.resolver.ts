@@ -191,7 +191,7 @@ export class CartResolver {
 		nullable: true,
 	})
 	async purchase(
-		@Args("details", { type: () => PaymentInput, nullable: false })
+		@Args("details", { type: () => PurchaseInput, nullable: false })
 		details: PurchaseInput,
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	): Promise<GQLCart> {
@@ -220,15 +220,16 @@ export class CartResolver {
 				purchaseInsertionPromise,
 			]);
 		} catch (e) {
+			console.error("Failed to insert a purchase", e);
+
 			// make this operation atomic, 🤞 let's hope no error is thrown here
 			// yes, ignore promises results
-			cart.save();
-			purchaseResult.map((purchase) => purchase.remove());
+			cart?.save();
+			purchaseResult?.map((purchase) => purchase.remove());
 
-			console.error("Failed to insert a purchase", e);
 			throw new InternalServerErrorException("Failed to finish purchase");
 		}
-		return null;
+		return this.mongoCart2GQL(cartResult);
 	}
 
 	@Query(() => [GQLPurchase], { nullable: true })
@@ -240,14 +241,16 @@ export class CartResolver {
 		try {
 			purchases = await this.purchaseModel.find({ userId: userId });
 			return Promise.all(
-				purchases.map(async (purchase) => ({
-					purchaseDate: purchase.purchaseDate.toISOString(),
-					email: purchase.billing.email,
-					cart: await this.mongoCart2GQL({
-						_id: "",
-						...purchase.cart,
-					} as unknown as CartMongoDoc),
-				})),
+				purchases
+					.map((purchase) => purchase.toObject())
+					.map(async (purchase) => ({
+						purchaseDate: purchase.purchaseDate.toISOString(),
+						email: purchase.billing.email,
+						cart: await this.mongoCart2GQL({
+							_id: "", // cart id is now invalid since it's nested within a purchase
+							...purchase.cart,
+						} as unknown as CartMongoDoc),
+					})),
 			);
 		} catch (e) {
 			console.error("Failed to retrieve purchase history", e);

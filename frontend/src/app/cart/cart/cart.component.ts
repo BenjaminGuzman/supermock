@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import {Apollo, gql} from "apollo-angular";
 import {map, Observable, startWith, Subscription} from "rxjs";
 import * as countries from "country-list";
@@ -8,7 +16,7 @@ import {Validators2} from "./Validators2";
 import {environment} from "../../../environments/environment";
 import cardValidator from "card-validator";
 import {MatSnackBar} from "@angular/material/snack-bar";
-import {ActivatedRoute} from "@angular/router";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-cart',
@@ -16,8 +24,10 @@ import {ActivatedRoute} from "@angular/router";
   styleUrls: ['./cart.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CartComponent implements OnInit {
-  public navigation: NavItem[] = [{name: "Shopping cart", url: "/cart"}];
+export class CartComponent implements OnInit, AfterViewInit {
+  @ViewChild("cartWrapper")
+  public cartWrapper: ElementRef | undefined;
+
   public isLoading: boolean = true;
 
   public cart?: Cart | null;
@@ -26,11 +36,7 @@ export class CartComponent implements OnInit {
 
   public filteredCountries: Observable<Country[]>;
 
-  public cardIcon = "credit_card";/*{
-    '': "credit_cart",
-    visa: "<img src='' alt='visa' width='12'/>",
-    amex: "<img src='/assets/img/cards/amex.svg' alt='amex' width='12'/>",
-  };*/
+  public cardIcon = "credit_card";
 
   public paymentForm: FormGroup;
 
@@ -96,21 +102,21 @@ export class CartComponent implements OnInit {
   };
 
   public billingFormCtrls = {
-    address1: new FormControl(null, [
+    address1: new FormControl('', [
       Validators.required,
     ]),
-    address2: new FormControl(null, []),
-    country: new FormControl(null, [
+    address2: new FormControl('', []),
+    country: new FormControl('', [
       Validators.required,
     ]),
-    state: new FormControl(null, [
+    state: new FormControl('', [
       Validators.required,
     ]),
-    zipCode: new FormControl(null, [
+    zipCode: new FormControl('', [
       Validators.required,
       Validators2.digitsOnly(true)
     ]),
-    email: new FormControl(null, [
+    email: new FormControl('', [
       Validators.required,
       Validators.email
     ]),
@@ -124,7 +130,7 @@ export class CartComponent implements OnInit {
     private apollo: Apollo,
     private changeDetectorRef: ChangeDetectorRef,
     private snackBar: MatSnackBar,
-    private activeRoute: ActivatedRoute
+    private router: Router
   ) {
     this.payFormCtrls = {
       name: new FormControl(null, [
@@ -239,6 +245,7 @@ export class CartComponent implements OnInit {
 
         this.cart = res.data.cart;
         this.changeDetectorRef.markForCheck();
+        setTimeout(() => this.registerAutoFillShortcuts(), 500);
       },
       error: err => {
         this.isLoading = false;
@@ -248,6 +255,32 @@ export class CartComponent implements OnInit {
       },
       complete: () => subscription.unsubscribe()
     });
+  }
+
+  ngAfterViewInit() {
+    this.registerAutoFillShortcuts();
+  }
+
+  private registerAutoFillShortcuts() {
+    this.cartWrapper?.nativeElement.addEventListener("keyup", (e: KeyboardEvent) => {
+      // ctrl + ` will fill the form
+      if (e.ctrlKey && e.key === "`") {
+        const expDate = new Date();
+        expDate.setFullYear(expDate.getFullYear() + 2);
+        this.payFormCtrls.name.setValue("María Irene Uribe Galván");
+        this.payFormCtrls.card.setValue("5662760010000013");
+        this.payFormCtrls.zipCode.setValue("17870");
+        this.payFormCtrls.securityCode.setValue("178");
+        this.payFormCtrls.country.setValue("Mexico");
+        this.payFormCtrls.expirationDate.setValue(expDate);
+
+        this.billingFormCtrls.zipCode.setValue("78945");
+        this.billingFormCtrls.email.setValue("alan@turing.ai");
+        this.billingFormCtrls.country.setValue("Mexico");
+        this.billingFormCtrls.address1.setValue("Address 1");
+        this.billingFormCtrls.state.setValue("IDK");
+      }
+    }, false);
   }
 
   public submit() {
@@ -265,14 +298,14 @@ export class CartComponent implements OnInit {
             country: "",
             zipCode: "",
             expirationDate: "",
-            cvv: "",
+            cvv: 0,
           },
           billing: {
             address1: this.billingFormCtrls.address1.value,
             address2: this.billingFormCtrls.address2?.value || undefined,
-            country: this.billingFormCtrls.country,
-            zipCode: this.billingFormCtrls.zipCode,
-            email: this.billingFormCtrls.email,
+            country: this.billingFormCtrls.country.value,
+            zipCode: this.billingFormCtrls.zipCode.value,
+            email: this.billingFormCtrls.email.value,
           }
         }
       },
@@ -297,7 +330,7 @@ export class CartComponent implements OnInit {
           .afterDismissed()
           .subscribe((val) => {
             sub.unsubscribe();
-            this.ngOnInit();
+            //this.router.navigateByUrl(this.router.url, {});
           });
       },
       error: err => {

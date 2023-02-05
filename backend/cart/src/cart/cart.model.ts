@@ -104,7 +104,7 @@ export class PaymentInput {
 	})
 	expirationDate: string;
 
-	@Field({ description: "Field is ignored. You can assign an empty string" })
+	@Field(() => Int,{ description: "Field is ignored. You can assign 0" })
 	cvv: number;
 }
 
@@ -113,7 +113,7 @@ export class BillingInput {
 	@Field({ description: "Address line 1" })
 	address1: string;
 
-	@Field({ description: "Address line 2" })
+	@Field({ description: "Address line 2", nullable: true })
 	address2?: string;
 
 	@Field({ description: "ISO 3166 alpha-2 country code" })
