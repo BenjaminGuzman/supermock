@@ -31,7 +31,7 @@ export class PurchaseHistoryComponent implements OnInit {
           }
         }
       }`,
-      fetchPolicy: "no-cache"
+      fetchPolicy: "network-only"
     }).subscribe({
       next: (res) => {
         this.isLoading = false;

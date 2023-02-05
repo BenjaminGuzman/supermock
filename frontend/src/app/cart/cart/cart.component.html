@@ -145,7 +145,7 @@
           <form class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 my-2">
             <mat-form-field class="col-span-2" appearance="outline">
               <mat-label>Name</mat-label>
-              <input matInput placeholder="Frida Karin Solano Guzmán" autofocus [formControl]="billingFormCtrls.name">
+              <input matInput placeholder="Frida Regina Solano Quaglia" autofocus [formControl]="billingFormCtrls.name">
               <mat-error *ngIf="billingFormCtrls.name.invalid">{{getErrorMsg(billingFormCtrls.name, {}, "Name")}}</mat-error>
             </mat-form-field>
             <mat-form-field class="col-span-2" appearance="outline">
@@ -163,7 +163,8 @@
               <mat-select [formControl]="billingFormCtrls.country">
                 <mat-option *ngFor="let country of countries" [value]="country.name">
                   <div class="flex items-center gap-3">
-                    <img class="w-[32px] h-[24px] max-w-[32px] max-h-[24px]" src="{{country.image}}" alt="{{country.code}}">
+                    <!-- Image fetching takes some time, better avoid it or even better use an autocomplete input -->
+<!--                    <img class="w-[32px] h-[24px] max-w-[32px] max-h-[24px]" src="{{country.image}}" alt="{{country.code}}">-->
                     <span>{{country.name}}</span>
                   </div>
                 </mat-option>

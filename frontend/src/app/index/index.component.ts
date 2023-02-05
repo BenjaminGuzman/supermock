@@ -228,7 +228,7 @@ export class IndexComponent implements OnInit, AfterViewInit {
         gender: this.registerControls.gender.value
       },
       errorPolicy: "all",
-      fetchPolicy: "no-cache"
+      fetchPolicy: "network-only"
     }).subscribe({
       next: (res) => {
         subscription.unsubscribe();

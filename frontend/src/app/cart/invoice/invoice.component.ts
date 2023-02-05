@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {Subscription} from "rxjs";
 import {Apollo, gql} from "apollo-angular";
-import {Cart, TrackInCart} from "../cart/cart.component";
+import {Cart} from "../cart/cart.component";
 import {ActivatedRoute} from '@angular/router';
 import {NavItem} from "../../utils/header/header.component";
 
@@ -17,6 +17,9 @@ export class InvoiceComponent implements OnInit {
   public navigation: NavItem[] = [{name: "Shopping cart", url: "/cart"}];
 
   public invoice: Purchase = {} as Purchase;
+
+  @ViewChild("pdfWrapper")
+  public pdfWrapper: ElementRef = {} as ElementRef;
 
   constructor(
     private apollo: Apollo,
@@ -73,7 +76,7 @@ export class InvoiceComponent implements OnInit {
       variables: {
         id: invoiceId
       },
-      fetchPolicy: "no-cache"
+      fetchPolicy: "network-only"
     }).subscribe({
       next: (res) => {
         this.isLoading = false;
@@ -96,6 +99,10 @@ export class InvoiceComponent implements OnInit {
       },
       complete: () => subscription.unsubscribe()
     });
+  }
+
+  public print() {
+    window.print();
   }
 }
 

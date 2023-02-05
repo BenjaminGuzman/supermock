@@ -237,7 +237,7 @@ export class CartComponent implements OnInit, AfterViewInit {
           }
         }
       }`,
-      fetchPolicy: "no-cache"
+      fetchPolicy: "network-only"
     }).subscribe({
       next: (res) => {
         this.isLoading = false;
@@ -277,7 +277,7 @@ export class CartComponent implements OnInit, AfterViewInit {
         this.payFormCtrls.country.setValue("Mexico");
         this.payFormCtrls.expirationDate.setValue(expDate);
 
-        this.billingFormCtrls.name.setValue("Frida Karin Solano Guzmán");
+        this.billingFormCtrls.name.setValue("Frida Regina Solano Quaglia");
         this.billingFormCtrls.zipCode.setValue("78945");
         this.billingFormCtrls.email.setValue("alan@turing.ai");
         this.billingFormCtrls.country.setValue("Mexico");
@@ -315,7 +315,7 @@ export class CartComponent implements OnInit, AfterViewInit {
           }
         }
       },
-      fetchPolicy: "no-cache"
+      fetchPolicy: "network-only"
     }).subscribe({
       next: (res) => {
         subscription.unsubscribe();
