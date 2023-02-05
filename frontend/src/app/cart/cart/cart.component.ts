@@ -237,7 +237,7 @@ export class CartComponent implements OnInit, AfterViewInit {
           }
         }
       }`,
-      fetchPolicy: "network-only"
+      fetchPolicy: "no-cache"
     }).subscribe({
       next: (res) => {
         this.isLoading = false;

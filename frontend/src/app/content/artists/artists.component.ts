@@ -11,6 +11,7 @@ import {Artist} from "./artist/artist";
 })
 export class ArtistsComponent implements OnInit {
   public artists: Artist[] = [];
+  public searchResults: Artist[] = [];
 
   public isLoading: boolean = true;
   public isDBInitialized: boolean = true;

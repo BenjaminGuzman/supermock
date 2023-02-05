@@ -13,10 +13,11 @@
     </div>
     <div *ngIf="isDBInitialized" class="w-full md:w-5/6 flex flex-col gap-3 justify-center mx-5 md:mx-auto">
       <div class="w-full mx-auto md:w-1/2">
-        <app-search-bar label="Search artists" placeholder="Ana Tijoux"></app-search-bar>
+        <app-search-bar label="Search artists" placeholder="Ana Tijoux" [data]="artists" [searchBy]="'name'" (results)="this.searchResults = $event"></app-search-bar>
       </div>
       <div class="flex justify-around flex-wrap gap-3 md:gap-6 pt-5">
-        <app-artist *ngFor="let artist of artists" [artistData]="artist"></app-artist>
+        <app-artist *ngFor="let artist of searchResults" [artistData]="artist"></app-artist>
+        <p *ngIf="searchResults.length === 0">Sorry but we don't have that artist in our database 😫</p>
       </div>
     </div>
   </div>

@@ -1,5 +1,5 @@
 <mat-accordion multi>
-  <mat-expansion-panel *ngFor="let artist of artistsInCart">
+  <mat-expansion-panel *ngFor="let artist of artistsInCart" expanded="true">
     <mat-expansion-panel-header class="h-16">
       <mat-panel-title>
         <div class="flex justify-center items-center">
@@ -12,7 +12,7 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <mat-accordion multi>
-      <mat-expansion-panel *ngFor="let album of artist.albumsInCart">
+      <mat-expansion-panel *ngFor="let album of artist.albumsInCart" expanded="true">
         <mat-expansion-panel-header class="h-16">
           <mat-panel-title>
             <div class="flex justify-center items-center">
@@ -27,7 +27,6 @@
         <div class="flex flex-col gap-5 w-full">
           <div class="flex justify-between items-center gap-5 w-full" *ngFor="let track of album.tracksInCart">
             <div class="flex-grow flex flex-col">
-<!--                TODO add remove option-->
               <span class="text-base sm:text-lg">{{track.title}}</span>
               <audio src="{{track.preview}}" class="w-full" controls></audio>
               <span class="text-xs sm:text-base">Added on {{track.dateAdded | date:"medium"}}</span>

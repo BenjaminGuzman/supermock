@@ -28,7 +28,9 @@ export class ContentService {
 
 	public async getTracks(tracksIds: string[]): Promise<Track[]> {
 		// only numbers are allowed
-		const goodTrackIds = tracksIds.map(parseInt).filter((id) => !isNaN(id));
+		const goodTrackIds = tracksIds
+			.map((id) => parseInt(id))
+			.filter((id) => !isNaN(id));
 
 		return await this.queryTracks(goodTrackIds);
 	}

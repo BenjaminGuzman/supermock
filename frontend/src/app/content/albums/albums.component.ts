@@ -16,6 +16,8 @@ export class AlbumsComponent implements OnInit {
   public navigation = [{name: 'Artists', url: '/content/artists'}];
 
   public albums: Album[] = [];
+  public searchResults: Album[] = [];
+
   public artist: Artist = {} as Artist;
 
   constructor(

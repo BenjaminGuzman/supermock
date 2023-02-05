@@ -13,14 +13,19 @@
           <img src="/assets/img/deezer.min.webp" alt="" class="w-8 h-8"/>
           <span>{{album.title}} on Deezer</span>
         </a>
+        <button mat-flat-button class="enabled:active:scale-90 transition-transform flex gap-2 items-center justify-center" (click)="add2Cart()">
+          <mat-icon>add_shopping_cart</mat-icon>
+          <span>Add all tracks</span>
+        </button>
       </div>
     </div>
     <p class="text-xl">Tracks</p>
     <div class="w-full mx-auto md:w-1/2">
-      <app-search-bar label="Search tracks" placeholder="What a time"></app-search-bar>
+      <app-search-bar label="Search tracks" placeholder="What a time" [data]="tracks" [searchBy]="'title'" (results)="this.searchResults = $event"></app-search-bar>
     </div>
     <div class="flex flex-col justify-around gap-4 md:gap-8">
-      <app-track *ngFor="let track of tracks" [trackData]="track"></app-track>
+      <app-track *ngFor="let track of searchResults" [trackData]="track"></app-track>
+      <p *ngIf="searchResults.length === 0" class="text-center">🤨? That song is not part of {{album.title}}.</p>
     </div>
   </div>
 </div>

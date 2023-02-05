@@ -1,7 +1,7 @@
 <div class="w-full">
   <mat-form-field class="w-full" appearance="standard">
     <mat-label>{{label}}</mat-label>
-    <input matInput placeholder="{{placeholder}}">
+    <input matInput placeholder="{{placeholder}}" (input)="filterResults()" #input>
     <mat-icon matSuffix>search</mat-icon>
     <mat-hint>{{hint}}</mat-hint>
   </mat-form-field>

@@ -4,7 +4,7 @@
     <p>Loading...</p>
   </div>
   <div *ngIf="!isLoading">
-    <div *ngIf="!cart" class="w-full md:w-1/2 px-5 mx-auto">
+    <div *ngIf="!cart || cart.artistsInCart.length === 0" class="w-full md:w-1/2 px-5 mx-auto">
       <div class="text-center flex flex-col gap-5">
         <div class="flex flex-col">
           <p class="font-medium">😱 Your cart is empty!</p>
@@ -18,7 +18,7 @@
         </div>
       </div>
     </div>
-    <div *ngIf="cart" class="w-full md:w-5/6 px-5 mx-auto" #cartWrapper>
+    <div *ngIf="cart && cart.artistsInCart.length > 0" class="w-full md:w-5/6 px-5 mx-auto" #cartWrapper>
       <mat-stepper orientation="horizontal" [linear]="!canSkipSteps">
         <!--      TODO: change color to match background-->
         <!-- STEP: Cart -->
@@ -37,7 +37,7 @@
             </button>
           </div>
           <p class="text-base sm:text-large">Review the items in your cart:</p>
-          <app-artists-in-cart [artistsInCart]="cart.artistsInCart"></app-artists-in-cart>
+          <app-artists-in-cart [artistsInCart]="cart.artistsInCart" (onCartUpdate)="this.cart = $event"></app-artists-in-cart>
         </mat-step>
 
         <!-- STEP: Payment -->

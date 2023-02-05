@@ -11,7 +11,7 @@ import {
 import { ExtractedJWTPayload } from "../auth/extracted-jwt-payload.decorator";
 import { JWTPayload } from "../auth/jwt-payload";
 import {
-	BadRequestException,
+	BadRequestException, ForbiddenException,
 	InternalServerErrorException,
 	UseGuards,
 } from "@nestjs/common";
@@ -263,29 +263,40 @@ export class CartResolver {
 		@Args("id", { type: () => ID, nullable: false }) id: string,
 		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
 	): Promise<GQLPurchase> {
+		let purchase: PurchaseMongoDoc | null;
 		try {
-			const purchase: PurchaseMongoDoc =
-				await this.purchaseModel.findById(id);
-
-			if (purchase.userId !== jwtPayload.userId) return null;
-
-			return {
-				id: purchase._id.toString(),
-				purchaseDate: purchase.purchaseDate.toISOString(),
-				email: purchase.billing.email,
-				billing: purchase.billing,
-				cart: await this.mongoCart2GQL({
-					_id: "",
-					...purchase.toObject().cart,
-				} as unknown as CartMongoDoc),
-			};
+			purchase = await this.purchaseModel.findById(id);
 		} catch (e) {
 			console.error("Failed to retrieve purchase history", e);
 			throw new InternalServerErrorException("Failed to retrieve data");
 		}
+		if (!purchase) throw new BadRequestException("Purchase doesn't exist");
+		if (purchase.userId !== jwtPayload.userId)
+			throw new ForbiddenException(
+				"You can only see your own purchase history",
+			);
+
+		return {
+			id: purchase._id.toString(),
+			purchaseDate: purchase.purchaseDate.toISOString(),
+			email: purchase.billing.email,
+			billing: purchase.billing,
+			cart: await this.mongoCart2GQL({
+				_id: "",
+				...purchase.toObject().cart,
+			} as unknown as CartMongoDoc),
+		};
 	}
 
 	private async mongoCart2GQL(cart: CartMongoDoc): Promise<GQLCart> {
+		if (cart.tracksInCart.length === 0)
+			return {
+				id: cart._id.toString(),
+				total: "0",
+				tracksInCart: [],
+				artistsInCart: [],
+			};
+
 		const groupedByArtist: ArtistInCart[] = this.groupByArtist(cart);
 		return {
 			id: cart._id.toString(),
