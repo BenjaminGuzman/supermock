@@ -182,8 +182,6 @@ export class CartResolver {
 		return 0;
 	}
 
-	// TODO purchase mutation
-	//  validate card
 	@Mutation(() => GQLCart, {
 		description:
 			"Purchase the user's shopping cart. " +
@@ -244,8 +242,10 @@ export class CartResolver {
 				purchases
 					.map((purchase) => purchase.toObject())
 					.map(async (purchase) => ({
+						id: purchase._id.toString(),
 						purchaseDate: purchase.purchaseDate.toISOString(),
 						email: purchase.billing.email,
+						billing: purchase.billing,
 						cart: await this.mongoCart2GQL({
 							_id: "", // cart id is now invalid since it's nested within a purchase
 							...purchase.cart,
@@ -258,8 +258,32 @@ export class CartResolver {
 		}
 	}
 
-	// TODO purchase invoice query
-	//  add catpcha challenge, https://pkg.go.dev/github.com/dchest/captcha#section-readme
+	@Query(() => GQLPurchase, { nullable: true, name: "purchase" })
+	async getPurchase(
+		@Args("id", { type: () => ID, nullable: false }) id: string,
+		@ExtractedJWTPayload() jwtPayload: JWTPayload | undefined,
+	): Promise<GQLPurchase> {
+		try {
+			const purchase: PurchaseMongoDoc =
+				await this.purchaseModel.findById(id);
+
+			if (purchase.userId !== jwtPayload.userId) return null;
+
+			return {
+				id: purchase._id.toString(),
+				purchaseDate: purchase.purchaseDate.toISOString(),
+				email: purchase.billing.email,
+				billing: purchase.billing,
+				cart: await this.mongoCart2GQL({
+					_id: "",
+					...purchase.toObject().cart,
+				} as unknown as CartMongoDoc),
+			};
+		} catch (e) {
+			console.error("Failed to retrieve purchase history", e);
+			throw new InternalServerErrorException("Failed to retrieve data");
+		}
+	}
 
 	private async mongoCart2GQL(cart: CartMongoDoc): Promise<GQLCart> {
 		const groupedByArtist: ArtistInCart[] = this.groupByArtist(cart);

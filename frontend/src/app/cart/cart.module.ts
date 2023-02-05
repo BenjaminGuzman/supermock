@@ -19,6 +19,8 @@ import {ReactiveFormsModule} from "@angular/forms";
 import { PurchaseHistoryComponent } from './purchase-history/purchase-history.component';
 import { CartIndexComponent } from './cart-index/cart-index.component';
 import {MatSnackBarModule} from "@angular/material/snack-bar";
+import {MatTableModule} from "@angular/material/table";
+import { InvoiceComponent } from './invoice/invoice.component';
 
 @NgModule({
   declarations: [
@@ -26,24 +28,26 @@ import {MatSnackBarModule} from "@angular/material/snack-bar";
     ArtistsInCartComponent,
     ArtistInCartComponent,
     PurchaseHistoryComponent,
-    CartIndexComponent
+    CartIndexComponent,
+    InvoiceComponent
   ],
-  imports: [
-    CommonModule,
-    CartRoutingModule,
-    GraphQLModule,
-    UtilsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatExpansionModule,
-    MatStepperModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatAutocompleteModule,
-    ReactiveFormsModule,
-    MatSnackBarModule,
-  ]
+    imports: [
+        CommonModule,
+        CartRoutingModule,
+        GraphQLModule,
+        UtilsModule,
+        MatIconModule,
+        MatButtonModule,
+        MatExpansionModule,
+        MatStepperModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatDatepickerModule,
+        MatAutocompleteModule,
+        ReactiveFormsModule,
+        MatSnackBarModule,
+        MatTableModule,
+    ]
 })
 export class CartModule { }

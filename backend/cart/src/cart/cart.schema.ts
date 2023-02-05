@@ -81,6 +81,9 @@ export class CartMongo {
 }
 
 export class BillingMongo {
+	@Prop({ required: true })
+	name: string;
+
 	@Prop({ required: true, description: "Address line 1" })
 	address1: string;
 
@@ -89,6 +92,9 @@ export class BillingMongo {
 
 	@Prop({ required: true, description: "ISO 3166 alpha-2 country code" })
 	country: string;
+
+	@Prop({ required: true })
+	state: string;
 
 	@Prop({ required: true, description: "Zip code" })
 	zipCode: string;

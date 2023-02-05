@@ -17,32 +17,16 @@ export class PurchaseHistoryComponent implements OnInit {
   constructor(private apollo: Apollo, private changeDetectorRef: ChangeDetectorRef) { }
 
   ngOnInit(): void {
-    const subscription: Subscription = this.apollo.query<{ purchases: Purchase[] }>({
+    const subscription: Subscription = this.apollo.query<{ purchases: (Purchase & {cart: {total: string; tracksInCart: {id: number}[]}})[] }>({
       query: gql`query {
         purchases {
+          id
           purchaseDate
           email
           cart {
             total
-            artistsInCart {
+            tracksInCart {
               id
-              name
-              picture
-              subtotal
-              albumsInCart {
-                id
-                title
-                cover
-                subtotal
-                tracksInCart {
-                  id
-                  title
-                  link
-                  preview
-                  price
-                  dateAdded
-                }
-              }
             }
           }
         }
@@ -57,8 +41,11 @@ export class PurchaseHistoryComponent implements OnInit {
           return;
 
         this.purchases = res.data.purchases.map(purchase => ({
-          ...purchase,
-          purchaseDate: new Date(purchase.purchaseDate)
+          id: purchase.id,
+          email: purchase.email,
+          purchaseDate: new Date(purchase.purchaseDate),
+          total: purchase.cart.total,
+          nTracks: purchase.cart.tracksInCart.length
         }));
         this.changeDetectorRef.markForCheck();
       },
@@ -75,7 +62,9 @@ export class PurchaseHistoryComponent implements OnInit {
 }
 
 export interface Purchase {
+  id: string;
   purchaseDate: Date;
   email: string;
-  cart: Cart;
+  total: string;
+  nTracks: number;
 }

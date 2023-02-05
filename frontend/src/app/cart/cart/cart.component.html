@@ -144,6 +144,11 @@
           </div>
           <form class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 my-2">
             <mat-form-field class="col-span-2" appearance="outline">
+              <mat-label>Name</mat-label>
+              <input matInput placeholder="Frida Karin Solano Guzmán" autofocus [formControl]="billingFormCtrls.name">
+              <mat-error *ngIf="billingFormCtrls.name.invalid">{{getErrorMsg(billingFormCtrls.name, {}, "Name")}}</mat-error>
+            </mat-form-field>
+            <mat-form-field class="col-span-2" appearance="outline">
               <mat-label>Address line 1</mat-label>
               <input matInput placeholder="Beautiful monads #777" autofocus [formControl]="billingFormCtrls.address1">
               <mat-error *ngIf="billingFormCtrls.address1.invalid">{{getErrorMsg(billingFormCtrls.address1, {})}}</mat-error>

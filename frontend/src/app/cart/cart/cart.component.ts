@@ -102,6 +102,9 @@ export class CartComponent implements OnInit, AfterViewInit {
   };
 
   public billingFormCtrls = {
+    name: new FormControl('', [
+      Validators.required
+    ]),
     address1: new FormControl('', [
       Validators.required,
     ]),
@@ -274,6 +277,7 @@ export class CartComponent implements OnInit, AfterViewInit {
         this.payFormCtrls.country.setValue("Mexico");
         this.payFormCtrls.expirationDate.setValue(expDate);
 
+        this.billingFormCtrls.name.setValue("Frida Karin Solano Guzmán");
         this.billingFormCtrls.zipCode.setValue("78945");
         this.billingFormCtrls.email.setValue("alan@turing.ai");
         this.billingFormCtrls.country.setValue("Mexico");
@@ -301,9 +305,11 @@ export class CartComponent implements OnInit, AfterViewInit {
             cvv: 0,
           },
           billing: {
+            name: this.billingFormCtrls.name.value,
             address1: this.billingFormCtrls.address1.value,
             address2: this.billingFormCtrls.address2?.value || undefined,
             country: this.billingFormCtrls.country.value,
+            state: this.billingFormCtrls.state.value,
             zipCode: this.billingFormCtrls.zipCode.value,
             email: this.billingFormCtrls.email.value,
           }
@@ -330,7 +336,11 @@ export class CartComponent implements OnInit, AfterViewInit {
           .afterDismissed()
           .subscribe((val) => {
             sub.unsubscribe();
-            //this.router.navigateByUrl(this.router.url, {});
+            const currentUrl = this.router.url;
+            // for some reason onSameUrlNavigation don't work, so just go to the index, and then go back here
+            this.router.navigateByUrl("/", {onSameUrlNavigation: "reload", skipLocationChange: true})
+              .then(res => this.router.navigateByUrl(currentUrl))
+              .catch(console.error);
           });
       },
       error: err => {

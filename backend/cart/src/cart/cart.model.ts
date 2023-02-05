@@ -104,12 +104,15 @@ export class PaymentInput {
 	})
 	expirationDate: string;
 
-	@Field(() => Int,{ description: "Field is ignored. You can assign 0" })
+	@Field(() => Int, { description: "Field is ignored. You can assign 0" })
 	cvv: number;
 }
 
 @InputType()
 export class BillingInput {
+	@Field()
+	name: string;
+
 	@Field({ description: "Address line 1" })
 	address1: string;
 
@@ -118,6 +121,9 @@ export class BillingInput {
 
 	@Field({ description: "ISO 3166 alpha-2 country code" })
 	country: string;
+
+	@Field()
+	state: string;
 
 	@Field({ description: "Zip code" })
 	zipCode: string;
@@ -135,8 +141,35 @@ export class PurchaseInput {
 	billing: BillingInput;
 }
 
+@ObjectType()
+export class Billing {
+	@Field()
+	name: string;
+
+	@Field({ description: "Address line 1" })
+	address1: string;
+
+	@Field({ description: "Address line 2", nullable: true })
+	address2?: string;
+
+	@Field({ description: "ISO 3166 alpha-2 country code" })
+	country: string;
+
+	@Field()
+	state: string;
+
+	@Field({ description: "Zip code" })
+	zipCode: string;
+
+	@Field()
+	email: string;
+}
+
 @ObjectType("Purchase")
 export class GQLPurchase {
+	@Field(() => ID)
+	id: string;
+
 	@Field({ description: "ISO-8601 formatted date" })
 	purchaseDate: string;
 
@@ -148,4 +181,7 @@ export class GQLPurchase {
 			"Email registered in billing information when purchase was completed",
 	})
 	email: string;
+
+	@Field(() => Billing)
+	billing: Billing;
 }
