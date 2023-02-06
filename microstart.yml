@@ -82,6 +82,14 @@ services:
     startedPatterns:
       - server is listening
 
+  - name: Captcha
+    aliases:
+      - captcha
+    start: cd backend/captcha && ./captcha
+    color: 0x00f0f0
+    startedPatterns:
+      - server is listening
+
   - name: Frontend
     aliases:
       - frontend
@@ -140,6 +148,7 @@ groups:
       - users
       - auth
       - cart
+      - captcha
     dependencies:
       - database
 
@@ -168,6 +177,13 @@ groups:
       - frontend
     dependencies:
       - backend-no-watch
+  
+  - name: Frontend captcha
+    aliases:
+      - frontend-captcha
+    services:
+      - frontend
+      - captcha
 
   - name: Backend group without watch
     aliases:
@@ -176,6 +192,7 @@ groups:
       - content-no-watch
       - users-no-watch
       - auth
+      - captcha
       - cart-no-watch
     dependencies:
       - database

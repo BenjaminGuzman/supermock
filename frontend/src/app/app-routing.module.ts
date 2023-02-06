@@ -16,6 +16,10 @@ const routes: Routes = [
     loadChildren: () => import("./cart/cart.module").then(m => m.CartModule),
     canActivate: [AuthGuard]
   },
+  {
+    path: "captcha",
+    loadChildren: () => import("./captcha/captcha.module").then(m => m.CaptchaModule),
+  },
   {path: "forbidden", component: ForbiddenComponent}
 ];
 

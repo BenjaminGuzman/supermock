@@ -1,0 +1,59 @@
+<button routerLink="/" title="I want to go home 😭" class="absolute top-3 left-3">
+  <mat-icon>home</mat-icon>
+</button>
+<div class="w-full">
+  <div class="flex flex-col w-full md:w-5/6 m-4 md:mx-auto">
+    <div class="w-full mx-auto">
+      <p class="text-2xl text-center">Captcha playground</p>
+      <p>You have to solve the captcha challenges</p>
+      <p>Easy right? Well... These are the rules:</p>
+      <ol class="list-decimal">
+        <li>Solve it using artificial intelligence</li>
+        <li>Don't use ANY pretrained model</li>
+        <li>Don't use ANY OCR tool</li>
+        <li>You're allowed to use public datasets for training</li>
+        <li>Utility libraries like
+          <a href="https://github.com/tesseract-ocr/tesseract" target="_blank" class="hover:underline">OpenCV</a> are allowed,
+          but engines like
+          <a href="https://github.com/tesseract-ocr/tesseract" target="_blank" class="hover:underline">tesseract</a> are NOT
+        </li>
+        <li>You may use any programming language you like 😉</li>
+      </ol>
+      <br>
+      <p>Basically you need to solve this from scratch.</p>
+      <p>Though, it is equally valid if you hack the server...</p>
+      <p>Happy hacking and good luck 😁</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 items-center">
+      <div class="flex flex-col gap-1 mx-auto">
+        <div>
+          <img *ngIf="captcha" src="data:image/png;base64,{{captcha.captcha}}" alt="Loading..." class="bg-white">
+          <p *ngIf="!captcha">Loading...</p>
+        </div>
+        <div class="">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex justify-around">
+            <mat-form-field>
+              <mat-label>Response</mat-label>
+              <input type="text" matInput [formControl]="answerCtrl">
+              <mat-error *ngIf="answerCtrl.invalid">Solve the captcha</mat-error>
+            </mat-form-field>
+            <div>
+              <button mat-button type="submit">Submit</button>
+              <button mat-icon-button type="reset" (click)="reload()">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="flex flex-col items-center justify-center w-full md:w-auto">
+        <img *ngIf="resultSrc" src="{{resultSrc}}" alt="Loading..." height="250">
+        <div *ngIf="!resultSrc" class="w-[400px] h-[250px]"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="w-full bg-black text-center py-3">
+  <p>Copyright (c) 2023. <a href="https://benjaminguzman.dev" target="_blank" class="hover:underline text-blue-400">Benjamín Antonio Velasco Guzmán</a></p>
+</footer>

@@ -1,0 +1,129 @@
+openapi: 3.0.3
+info:
+  title: Captcha challenge server
+  description: Serves captchas that can be break with artificial intelligence
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:6000'
+components:
+  schemas:
+    CaptchaResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - image
+            - audio
+        captcha:
+          type: string
+          description: Base 64 encoded data
+      required:
+        - id
+        - type
+        - captcha
+
+    CaptchaReloadRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - image
+            - audio
+      required:
+        - id
+        - type
+
+    CaptchaValidationRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        answer:
+          type: string
+      required:
+        - id
+        - answer
+
+    CaptchaValidationResponse:
+      type: object
+      properties:
+        response:
+          description: "Base 64 encoded GIF image indicating the response"
+          type: string
+        mimeType:
+          description: Response MIME type
+          type: string
+
+    ErrorResponse:
+      title: object
+      properties:
+        error:
+          type: string
+          description: Error description
+      required:
+        - error
+
+paths:
+  /:
+    get:
+      description: Generate a new captcha
+      operationId: newCaptcha
+      responses:
+        200:
+          description: Captcha successfully generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptchaResponse'
+        500:
+          description: Captcha generation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /reload:
+    get:
+      description: Reload captcha
+      operationId: reloadCaptcha
+      responses:
+        200:
+          description: Captcha successfully reloaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptchaResponse'
+        400:
+          description: Invalid body or data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          description: Captcha reload failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /validate:
+    post:
+      description: Validate captcha response is correct
+      operationId: validateCaptcha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaptchaValidationRequest'
+      responses:
+        200:
+          description: Returns a GIF image indicating if whether the answer was correct
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptchaValidationResponse'

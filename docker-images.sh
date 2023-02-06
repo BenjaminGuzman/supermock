@@ -48,7 +48,7 @@ fi
 if [[ ! -z "$2" ]]; then # build and push specific microservice
 	MICROSERVICE="$2"
 	case "$MICROSERVICE" in
-		users|cart|auth|content)
+		users|cart|auth|content|captcha)
 			docker_build_and_push backend/$MICROSERVICE guzmanbenjamin/webmock-$MICROSERVICE:$VER
 			;;
 		gateway)

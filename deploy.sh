@@ -193,7 +193,7 @@ elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
 fi
 
 __print_section "Downloading configuration files"
-MICROSERVICES=(auth cart content users)
+MICROSERVICES=(auth cart content users captcha)
 cd "$WORKING_DIR" || exit 1
 if [[ "$USE_GIT" == "t" ]]; then
 	echo Cloning repository using git
