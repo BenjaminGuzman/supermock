@@ -286,12 +286,22 @@ done
 
 # docker-compose.yml for v1
 cd "$WORKING_DIR_V1" || exit 1
-COMPOSE_FILE_V1_REMOTE_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/docker-compose.yml"
+echo "Now downloading stuff for v1"
+mkdir db || exit 1
+V1_BASE_REMOTE_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1"
 if [[ "$TOOL" == "curl" ]]; then
-	echo "docker-compose.yml for v1"
-	curl --progress-bar --output "docker-compose.yml" "$COMPOSE_FILE_V1_REMOTE_URL"
+	echo "[v1]: docker-compose.yml"
+	curl --progress-bar --output "docker-compose.yml" "$V1_BASE_REMOTE_URL/docker-compose.yml"
+
+	echo "[v1]: .env for v1"
+	curl --progress-bar --output ".env.prod" "$V1_BASE_REMOTE_URL/.env.example"
+
+	echo "[v1]: db/db-init.sh"
+	curl --progress-bar --output "db/db-init.sh" "$V1_BASE_REMOTE_URL/db/db-init.sh"
 elif [[ "$TOOL" == "wget" ]]; then
-	wget --quiet --show-progress --output-document "docker-compose.yml" "$COMPOSE_FILE_V1_REMOTE_URL"
+	wget --quiet --show-progress --output-document "docker-compose.yml" "$V1_BASE_REMOTE_URL/docker-compose.yml"
+	wget --quiet --show-progress --output-document ".env.prod" "$V1_BASE_REMOTE_URL/.env.example"
+	wget --quiet --show-progress --output-document "db/db-init.sh" "$V1_BASE_REMOTE_URL/db/db-init.sh"
 fi
 cd "$WORKING_DIR_V2" || exit
 
