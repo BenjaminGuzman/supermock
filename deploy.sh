@@ -188,7 +188,7 @@ if [[ -z "$DOMAIN" ]]; then
 	exit 1
 fi
 
-for dir in ("$WORKING_DIR_V1" "$WORKING_DIR_V2"); do
+for dir in "$WORKING_DIR_V1" "$WORKING_DIR_V2"; do
 	if [[ ! -d "$dir" ]]; then
 		echo "Directory $dir doesn't exist. "
 		if ask_yesno "Would you like to create directory $dir"; then
