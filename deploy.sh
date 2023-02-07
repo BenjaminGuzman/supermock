@@ -80,23 +80,32 @@ function help {
 	$(cha '-h')|- Display this help message and exit
 	$(cha '-d' 'domain')|- Domain name, e.g. test.benjaminguzman.dev
 	$(cha '-w' 'workdir')|- Working directory
-	|  This directory will store the git repo or downloaded files for v2
+	|  Directories 'v1' and 'v2' will be created inside this directory.
+	|  Configuration files will be downloaded inside this directories
 	|    Default: $WORKING_DIR
 	$(cha '-t')|- You plan to add TLS (https)
 	|  Providing this flag will bing nginx sever to 127.0.0.1:8080
 	|  instead of [::]:80 and 0.0.0.0:80, and
 	|  frontend requests will use https protocol instead of http.
 	|  Notice however, you should configure TLS on your own.
-	$(cha '-g')|- Use git instead of curl or wget to download files
 	$(cha '-f' 'filepath')|- Path to docker-compose.yml for v1.
-	|  Only provide this option if you want to deploy v1 also
+	|  Only provide this option if you want to deploy v1 too.
+	$(cha '-s' 'workdir')|- Stop v1 and v2.
+	|  Run 'docker compose down' inside 'v1' and 'v2' directories
+	|  inside the given working directory.
+	|  If this flag is given, the rest of flags are ignored.
+	$(cha '-u' 'workdir')|- Start v1 and v2.
+	|  Run 'docker compose up -d' inside 'v1' and 'v2' directories
+	|  inside the given working directory.
+	|  Only use this option if v1 and v2 have already been configured.
+	|  If this flag is given, the rest of flags are ignored.
 	"
 
 	echo -e "\033[37;1mDeploy web mock app for testing\033[0m"
 	echo "More info:  https://github.com/BenjaminGuzman/webmock"
 	echo "Author:     Benjamín Guzmán (https://benjaminguzman.dev)"
 	echo
-	echo -e "\033[37;1mUsage:\033[0m \033[34;1m$(basename $0)\033[0m $(cha '-d' 'domain') [$(cha '-w' 'workdir')] [$(cha '-g')] [$(cha '-t')] [$(cha '-f' 'filepath')]"
+	echo -e "\033[37;1mUsage:\033[0m \033[34;1m$(basename $0)\033[0m $(cha '-d' 'domain') [$(cha '-w' 'workdir')] [$(cha '-t')] [$(cha '-f' 'filepath')] [$(cha '-s' 'workdir')]"
 	echo
 	echo -e "\033[37;1mOptions:\033[0m"
 
@@ -108,11 +117,12 @@ function help {
 ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
 
 DOMAIN=""
-WORKING_DIR="$HOME/v2"
-USE_GIT="f"
+WORKING_DIR="$HOME"
 USE_TLS="f"
 V1_COMPOSE_FILE=""
-while getopts ":hd:w:f:gt" opt; do
+STOP_WORKING_DIR=""
+UP_WORKING_DIR=""
+while getopts ":hd:w:f:s:u:gt" opt; do
 	case $opt in
 		h)
 			help
@@ -123,21 +133,53 @@ while getopts ":hd:w:f:gt" opt; do
 		w)
 			WORKING_DIR="$OPTARG"
 			;;
-		g)
-			USE_GIT="t"
-			;;
 		t)
 			USE_TLS="t"
 			;;
 		f)
 			V1_COMPOSE_FILE="$OPTARG"
 			;;
+		s)
+			STOP_WORKING_DIR="$OPTARG"
+			;;
+		u)
+			UP_WORKING_DIR="$OPTARG"
+			;;
 		*)
 			echo "Invalid option '$opt'"
 			exit;;
 	esac
 done
+
+# just stop already running containers
+if [[ -n "$STOP_WORKING_DIR" ]]; then
+	STOP_WORKING_DIR=$(realpath "$STOP_WORKING_DIR")
+	
+	print_section "Stopping v2"
+	cd "$STOP_WORKING_DIR/v2" && docker compose down
+	
+	print_section "Stopping v1"
+	cd "$STOP_WORKING_DIR/v1" && docker compose down
+
+	exit 0
+fi
+
+# just start already configured services
+if [[ -n "$UP_WORKING_DIR" ]]; then
+	UP_WORKING_DIR=$(realpath "$UP_WORKING_DIR")
+
+	print_section "Starting v2"
+	cd "$UP_WORKING_DIR/v2" && docker compose up -d
+
+	print_section "Starting v1"
+	cd "$UP_WORKING_DIR/v1" && docker compose up -d
+
+	exit 0
+fi
+
 WORKING_DIR=$(realpath --canonicalize-missing "$WORKING_DIR")
+WORKING_DIR_V2="$WORKING_DIR/v2"
+WORKING_DIR_V1="$WORKING_DIR/v1"
 
 # Check required arguments
 if [[ -z "$DOMAIN" ]]; then
@@ -146,12 +188,14 @@ if [[ -z "$DOMAIN" ]]; then
 	exit 1
 fi
 
-if [[ ! -d "$WORKING_DIR" ]]; then
-	echo "Directory $WORKING_DIR doesn't exist. "
-	if ask_yesno "Would you like to create directory $WORKING_DIR"; then
-		mkdir -p "$WORKING_DIR"
+for dir in ("$WORKING_DIR_V1" "$WORKING_DIR_V2"); do
+	if [[ ! -d "$dir" ]]; then
+		echo "Directory $dir doesn't exist. "
+		if ask_yesno "Would you like to create directory $dir"; then
+			mkdir -p "$dir"
+		fi
 	fi
-fi
+done
 
 print_section "Detecting distribution"
 DISTROS=(gentoo ubuntu debian fedora centos rocky)
@@ -216,58 +260,47 @@ fi
 
 print_section "Downloading configuration files"
 MICROSERVICES=(auth cart content users captcha)
-cd "$WORKING_DIR" || exit 1
-if [[ "$USE_GIT" == "t" ]]; then
-	echo Cloning repository using git
+cd "$WORKING_DIR_V2" || exit 1
 
-	# First, verify git is installed
-	if [[ "$DISTRO" == "gentoo" ]]; then
-		check_dep git "git --help" "sudo emerge dev-vcs/git"
-	elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-		check_dep git "git --help" "sudo apt-get install -y git"
-	elif [[ "$DISTRO" == "fedora" ]]; then
-		check_dep git "git --help" "sudo dnf install -y git"
-	elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
-		check_dep git "git --help" "sudo yum install -y git"
+tool=wget
+for possible_tool in wget curl; do
+	if command -v "$possible_tool" > /dev/null 2>&1; then
+		tool=$possible_tool
+		break
 	fi
+done
 
-	git clone https://github.com/BenjaminGuzman/webmock.git .
-	git checkout v2 # this script is intended to be used with v2 only
+echo -e "Downloading files using \033[97m$tool\033[0m"
+mkdir -p backend/{users,content,auth,cart,captcha} frontend mongo postgres > /dev/null 2>&1
 
-	# Move .env.example to .env.prod for each microservice
-	for microservice in "${MICROSERVICES[@]}"; do
-		mv "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
-	done
-else
-	tool=wget
-	for possible_tool in wget curl; do
-		if command -v "$possible_tool" > /dev/null 2>&1; then
-			tool=$possible_tool
-			break
-		fi
-	done
+# .env files
+for microservice in "${MICROSERVICES[@]}"; do
+	download "$tool" "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
+done
 
-	echo -e "Downloading files using \033[97m$tool\033[0m"
-	mkdir -p backend/{users,content,auth,cart,captcha} frontend mongo postgres > /dev/null 2>&1
+# Other files
+FILES=("mongo/001-users.js" "postgres/001-db-init.sh" "postgres/002-ddl.sql" "docker-compose.yml" "backend/auth/random-secret.sh")
+for file in "${FILES[@]}"; do
+	download "$tool" "$file"
+done
 
-	# .env files
-	for microservice in "${MICROSERVICES[@]}"; do
-		download "$tool" "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
-	done
-
-	# Other files
-	FILES=("mongo/001-users.js" "postgres/001-db-init.sh" "postgres/002-ddl.sql" "docker-compose.yml" "backend/auth/random-secret.sh")
-	for file in "${FILES[@]}"; do
-		download "$tool" "$file"
-	done
+# docker-compose.yml for v1
+cd "$WORKING_DIR_V1" || exit 1
+COMPOSE_FILE_V1_REMOTE_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v1/docker-compose.yml"
+if [[ "$TOOL" == "curl" ]]; then
+	echo "docker-compose.yml for v1"
+	curl --progress-bar --output "docker-compose.yml" "$COMPOSE_FILE_V1_REMOTE_URL"
+elif [[ "$TOOL" == "wget" ]]; then
+	wget --quiet --show-progress --output-document "docker-compose.yml" "$COMPOSE_FILE_V1_REMOTE_URL"
 fi
+cd "$WORKING_DIR_V2" || exit
 
 print_section "Creating random secret for auth microservice"
 echo "Executing script backend/auth/random-secret.sh..."
 cd backend/auth || exit 1
 chmod u+x random-secret.sh
 ./random-secret.sh > /dev/null 2>&1
-cd "$WORKING_DIR" || exit 1
+cd "$WORKING_DIR_V2" || exit 1
 
 print_section "Changing domain name to $DOMAIN"
 PROTOCOL="http"
@@ -302,7 +335,7 @@ else
 	echo "TLS is not intended to be used. Nginx HTTP server will bind to port 80"
 fi
 
-START_CONTAINERS_CMD="cd '$WORKING_DIR' && sudo docker compose up -d"
+START_CONTAINERS_CMD="cd '$WORKING_DIR_V2' && sudo docker compose up -d"
 if [[ ! -z "$V1_COMPOSE_FILE" ]]; then
 	echo "Configuring request forwarding for V1..."
 	sed -i 's/INCLUDE_V1=[a-zA-Z]\+/INCLUDE_V1=true/g' docker-compose.yml
