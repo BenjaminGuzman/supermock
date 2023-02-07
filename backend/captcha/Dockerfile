@@ -14,6 +14,8 @@ FROM alpine
 
 WORKDIR /
 
+ADD ["failure-gifs", "/failure-gifs"]
+ADD ["success-gifs", "/success-gifs"]
 COPY --from=builder ["/usr/src/captcha", "/captcha"]
 
 VOLUME ["/.env"]

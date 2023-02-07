@@ -55,6 +55,14 @@ services:
       - postgres
       - auth
 
+  captcha:
+    image: guzmanbenjamin/webmock-captcha:v2.0-alpha
+    restart: on-failure
+    volumes:
+      - "./backend/captcha/.env.prod:/.env"
+    networks:
+      - webmock-net
+
   postgres:
     image: postgres
     restart: on-failure
@@ -97,4 +105,4 @@ networks:
     external: true
   public-net:
     driver: bridge
-    enable_ipv6: true
+    #enable_ipv6: true

@@ -1,12 +1,12 @@
 #!/bin/bash
 
-function __print_section {
+function print_section {
 	SECTION_NAME="$1"
 	echo
 	echo -e "\033[94m*** $SECTION_NAME ***\033[0m"
 }
 
-function __ask_yesno {
+function ask_yesno {
 	PROMPT="$1"
 	while true; do
 		echo -en "\033[97m$PROMPT (\033[92mY\033[0m/\033[91mn\033[97m)?\033[0m "
@@ -21,7 +21,7 @@ function __ask_yesno {
 	done
 }
 
-function __check_dep {
+function check_dep {
 	DEP_NAME="$1"
 	DEP_CHECK_CMD="$2"
 	DEP_INSTALLATION_CMD="$3"
@@ -32,7 +32,7 @@ function __check_dep {
 		echo "✅" # dependency is indeed installed
 	else
 		echo -ne "❌\n\t$DEP_NAME is not installed. "
-		if __ask_yesno "Would you like to install it"; then
+		if ask_yesno "Would you like to install it"; then
 			echo -e "Installing $DEP_NAME with command \033[97m$DEP_INSTALLATION_CMD\033[0m"
 			sh -c "$DEP_INSTALLATION_CMD"
 		else
@@ -41,7 +41,7 @@ function __check_dep {
 	fi
 }
 
-function __download {
+function download {
 	TOOL="$1"
 	REMOTE_FILE="$2"
 	LOCAL_FILE="$3" # optional, default = REMOTE_FILE
@@ -69,25 +69,25 @@ function help {
 	echo -e "Usage: \033[34;1m$0\033[0m \033[33;1m-d domain\033[0m \033[33m[-w directory] [-g] [-t] [-f filepath]\033[0m"
 	echo
 	echo Options:
-	echo -e " \033[33;1m-h\033[0m               - Display this help message and exit"
-	echo -e " \033[33;1m-d domain\033[0m        - Domain name, e.g. test.benjaminguzman.dev"
-	echo -e " \033[33;1m-w directory\033[0m     - Working directory. Must be an empty directory"
-	echo -e "                    This directory will store the git repo or downloaded files"
-	echo -e "                      Default: $HOME"
-	echo -e " \033[33;1m-t\033[0m               - You plan to add TLS (https)"
+	echo -e " \033[33;1m-h\033[0m               Display this help message and exit"
+	echo -e " \033[33;1m-d domain\033[0m        Domain name, e.g. test.benjaminguzman.dev"
+	echo -e " \033[33;1m-w directory\033[0m     Working directory"
+	echo -e "                    This directory will store the git repo or downloaded files for v2"
+	echo -e "                      Default: $WORKING_DIR"
+	echo -e " \033[33;1m-t\033[0m               You plan to add TLS (https)"
 	echo -e "                      Providing this flag will bind nginx server to 127.0.0.1:8080"
 	echo -e "                      instead of [::]:80 and 0.0.0.0:80, and"
-	echo -e "                      frontend will use https protocol instead of http."
+	echo -e "                      frontend requests will use https protocol instead of http."
 	echo -e "                      Notice however, you should configure TLS on your own."
-	echo -e " \033[33;1m-g\033[0m               - Use git instead of downloading files with curl or wget"
-	echo -e " \033[33;1m-f filepath\033[0m      - Path to docker-compose.yml for v1."
+	echo -e " \033[33;1m-g\033[0m               Use git instead of downloading files with curl or wget"
+	echo -e " \033[33;1m-f filepath\033[0m      Path to docker-compose.yml for v1."
 	echo -e "                    Only provide this option if you want to deploy v1"
 }
 
 ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
 
 DOMAIN=""
-WORKING_DIR="$HOME"
+WORKING_DIR="$HOME/v2"
 USE_GIT="f"
 USE_TLS="f"
 V1_COMPOSE_FILE=""
@@ -116,6 +116,7 @@ while getopts ":hd:w:f:gt" opt; do
 			exit;;
 	esac
 done
+WORKING_DIR=$(realpath --canonicalize-missing "$WORKING_DIR")
 
 # Check required arguments
 if [[ -z "$DOMAIN" ]]; then
@@ -126,12 +127,12 @@ fi
 
 if [[ ! -d "$WORKING_DIR" ]]; then
 	echo "Directory $WORKING_DIR doesn't exist. "
-	if __ask_yesno "Would you like to create $WORKING_DIR"; then
+	if ask_yesno "Would you like to create directory $WORKING_DIR"; then
 		mkdir -p "$WORKING_DIR"
 	fi
 fi
 
-__print_section "Detecting distribution"
+print_section "Detecting distribution"
 DISTROS=(gentoo ubuntu debian fedora centos rocky)
 DISTRO=""
 
@@ -172,27 +173,27 @@ fi
 
 echo "Distribution detected: $DISTRO"
 
-__print_section "Checking dependencies"
+print_section "Checking dependencies"
 if [[ "$DISTRO" == "gentoo" ]]; then
 	# Gentoo system could be running openrc instead of systemd
 	# In which case proceeding with installation would be useless as it'll fail
 	echo "Detected that you're on Gentoo Linux"
 	echo "Because of that it is recommended to execute the steps manually"
 	echo "so you have granular control of the deploy."
-	if ! __ask_yesno "Would you like to proceed anyway"; then
+	if ! ask_yesno "Would you like to proceed anyway"; then
 		exit 0
 	fi
 
-	__check_dep docker "systemctl cat docker" "sudo emerge app-containers/docker app-containers/docker-cli; sudo systemctl start docker"
+	check_dep docker "systemctl cat docker" "sudo emerge app-containers/docker app-containers/docker-cli; sudo systemctl start docker"
 elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-	__check_dep docker "systemctl cat docker" "sudo apt-get update; sudo apt-get install -y ca-certificates curl gnupg lsb-release; sudo mkdir -p /etc/apt/keyrings; curl -fsSL https://download.docker.com/linux/$DISTRO/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg; echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO  $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null; sudo apt-get update; sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
+	check_dep docker "systemctl cat docker" "sudo apt-get update; sudo apt-get install -y ca-certificates curl gnupg lsb-release; sudo mkdir -p /etc/apt/keyrings; curl -fsSL https://download.docker.com/linux/$DISTRO/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg; echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO  $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null; sudo apt-get update; sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
 elif [[ "$DISTRO" == "fedora" ]]; then
-	__check_dep docker "systemctl cat docker" "sudo dnf install -y dnf-plugins-core; sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
+	check_dep docker "systemctl cat docker" "sudo dnf install -y dnf-plugins-core; sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo; sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
 elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
-	__check_dep docker "systemctl cat docker" "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
+	check_dep docker "systemctl cat docker" "sudo yum install -y yum-utils; sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin; sudo systemctl start docker"
 fi
 
-__print_section "Downloading configuration files"
+print_section "Downloading configuration files"
 MICROSERVICES=(auth cart content users captcha)
 cd "$WORKING_DIR" || exit 1
 if [[ "$USE_GIT" == "t" ]]; then
@@ -200,13 +201,13 @@ if [[ "$USE_GIT" == "t" ]]; then
 
 	# First, verify git is installed
 	if [[ "$DISTRO" == "gentoo" ]]; then
-		__check_dep git "git --help" "sudo emerge dev-vcs/git"
+		check_dep git "git --help" "sudo emerge dev-vcs/git"
 	elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-		__check_dep git "git --help" "sudo apt-get install -y git"
+		check_dep git "git --help" "sudo apt-get install -y git"
 	elif [[ "$DISTRO" == "fedora" ]]; then
-		__check_dep git "git --help" "sudo dnf install -y git"
+		check_dep git "git --help" "sudo dnf install -y git"
 	elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
-		__check_dep git "git --help" "sudo yum install -y git"
+		check_dep git "git --help" "sudo yum install -y git"
 	fi
 
 	git clone https://github.com/BenjaminGuzman/webmock.git .
@@ -226,28 +227,28 @@ else
 	done
 
 	echo -e "Downloading files using \033[97m$tool\033[0m"
-	mkdir -p backend/{users,content,auth,cart} frontend mongo postgres > /dev/null 2>&1
+	mkdir -p backend/{users,content,auth,cart,captcha} frontend mongo postgres > /dev/null 2>&1
 
 	# .env files
 	for microservice in "${MICROSERVICES[@]}"; do
-		__download "$tool" "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
+		download "$tool" "backend/$microservice/.env.example" "backend/$microservice/.env.prod"
 	done
 
 	# Other files
 	FILES=("mongo/001-users.js" "postgres/001-db-init.sh" "postgres/002-ddl.sql" "docker-compose.yml" "backend/auth/random-secret.sh")
 	for file in "${FILES[@]}"; do
-		__download "$tool" "$file"
+		download "$tool" "$file"
 	done
 fi
 
-__print_section "Creating random secret for auth microservice"
+print_section "Creating random secret for auth microservice"
 echo "Executing script backend/auth/random-secret.sh..."
 cd backend/auth || exit 1
 chmod u+x random-secret.sh
 ./random-secret.sh > /dev/null 2>&1
 cd "$WORKING_DIR" || exit 1
 
-__print_section "Changing domain name to $DOMAIN"
+print_section "Changing domain name to $DOMAIN"
 PROTOCOL="http"
 if [[ "$USE_TLS" == "t" ]]; then
 	PROTOCOL="https"
@@ -260,7 +261,7 @@ done
 
 sed -i "s|https://test.benjaminguzman.dev|$PROTOCOL://$DOMAIN|g" docker-compose.yml
 
-__print_section "Configuring nginx"
+print_section "Configuring nginx"
 if [[ "$USE_TLS" == "t" ]]; then
 	echo "TLS is intended to be used. Nginx HTTP server will bind to port 8080"
 	sed -i 's|"80:80"|"8080:80"|g' docker-compose.yml
@@ -268,13 +269,13 @@ if [[ "$USE_TLS" == "t" ]]; then
 	# check nginx is installed
 	# TODO: check certbot is installed?
 	if [[ "$DISTRO" == "gentoo" ]]; then
-		__check_dep nginx "systemctl cat nginx" "sudo emerge www-servers/nginx"
+		check_dep nginx "systemctl cat nginx" "sudo emerge www-servers/nginx"
 	elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-		__check_dep nginx "systemctl cat nginx" "sudo apt-get install -y nginx"
+		check_dep nginx "systemctl cat nginx" "sudo apt-get install -y nginx"
 	elif [[ "$DISTRO" == "fedora" ]]; then
-		__check_dep nginx "systemctl cat nginx" "sudo dnf install -y nginx"
+		check_dep nginx "systemctl cat nginx" "sudo dnf install -y nginx"
 	elif [[ "$DISTRO" == "centos" || "$DISTRO" == "rocky" ]]; then
-		__check_dep nginx "systemctl cat nginx" "sudo yum install -y nginx"
+		check_dep nginx "systemctl cat nginx" "sudo yum install -y nginx"
 	fi
 else
 	echo "TLS is not intended to be used. Nginx HTTP server will bind to port 80"
@@ -303,10 +304,10 @@ else
 	echo "sed -i \'s/#ports:/ports:/g\' V1_COMPOSE_FILE"
 fi
 
-__print_section "Creating docker network (webmock-net)"
+print_section "Creating docker network \"webmock-net\""
 sudo docker network create webmock-net --driver bridge
 
-__print_section "Next steps"
+print_section "Next steps"
 echo " * (Optional) Add TLS certificate using certbot and Let's Encrypt"
 echo "     Useful links:"
 echo "       https://certbot.eff.org/"
@@ -317,8 +318,8 @@ echo "     $START_CONTAINERS_CMD"
 echo -en "\033[0m"
 echo
 
-if __ask_yesno "Would you like to start the containers now"; then
-	__print_section "Starting containers"
+if ask_yesno "Would you like to start the containers now"; then
+	print_section "Starting containers"
 	sh -c "$START_CONTAINERS_CMD"
 fi
 
