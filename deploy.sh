@@ -61,27 +61,48 @@ function download {
 	fi
 }
 
+# color help arg
+function cha {
+	ARG_NAME="$1"
+	ARG="$2"
+
+	OUT="\033[33;1m$ARG_NAME\033[0m";
+	
+	if [[ -n "$ARG" ]]; then
+		OUT="$OUT \033[4;36m$ARG\033[0m";
+	fi
+
+	echo -n "$OUT"
+}
+
 function help {
+	OPTIONS="
+	$(cha '-h')|- Display this help message and exit
+	$(cha '-d' 'domain')|- Domain name, e.g. test.benjaminguzman.dev
+	$(cha '-w' 'workdir')|- Working directory
+	|  This directory will store the git repo or downloaded files for v2
+	|    Default: $WORKING_DIR
+	$(cha '-t')|- You plan to add TLS (https)
+	|  Providing this flag will bing nginx sever to 127.0.0.1:8080
+	|  instead of [::]:80 and 0.0.0.0:80, and
+	|  frontend requests will use https protocol instead of http.
+	|  Notice however, you should configure TLS on your own.
+	$(cha '-g')|- Use git instead of curl or wget to download files
+	$(cha '-f' 'filepath')|- Path to docker-compose.yml for v1.
+	|  Only provide this option if you want to deploy v1 also
+	"
+
 	echo -e "\033[37;1mDeploy web mock app for testing\033[0m"
 	echo "More info:  https://github.com/BenjaminGuzman/webmock"
 	echo "Author:     Benjamín Guzmán (https://benjaminguzman.dev)"
 	echo
-	echo -e "Usage: \033[34;1m$0\033[0m \033[33;1m-d domain\033[0m \033[33m[-w directory] [-g] [-t] [-f filepath]\033[0m"
+	echo -e "\033[37;1mUsage:\033[0m \033[34;1m$(basename $0)\033[0m $(cha '-d' 'domain') [$(cha '-w' 'workdir')] [$(cha '-g')] [$(cha '-t')] [$(cha '-f' 'filepath')]"
 	echo
-	echo Options:
-	echo -e " \033[33;1m-h\033[0m               Display this help message and exit"
-	echo -e " \033[33;1m-d domain\033[0m        Domain name, e.g. test.benjaminguzman.dev"
-	echo -e " \033[33;1m-w directory\033[0m     Working directory"
-	echo -e "                    This directory will store the git repo or downloaded files for v2"
-	echo -e "                      Default: $WORKING_DIR"
-	echo -e " \033[33;1m-t\033[0m               You plan to add TLS (https)"
-	echo -e "                      Providing this flag will bind nginx server to 127.0.0.1:8080"
-	echo -e "                      instead of [::]:80 and 0.0.0.0:80, and"
-	echo -e "                      frontend requests will use https protocol instead of http."
-	echo -e "                      Notice however, you should configure TLS on your own."
-	echo -e " \033[33;1m-g\033[0m               Use git instead of downloading files with curl or wget"
-	echo -e " \033[33;1m-f filepath\033[0m      Path to docker-compose.yml for v1."
-	echo -e "                    Only provide this option if you want to deploy v1"
+	echo -e "\033[37;1mOptions:\033[0m"
+
+	# sed command will remove indentation (from OPTIONS variable)
+	# printf will add indentation
+	echo -en "$OPTIONS" | sed 's/^[[:space:]]*//g' | column -t -s '|' -o '    ' | xargs -d '\n' printf '  %s\n'
 }
 
 ROOT_DOWNLOAD_URL="https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2"
