@@ -1,4 +1,11 @@
-# Web mock (V2)
+# Super mock (V2)
+
+This is version 2 of the super mock application, an application to learn and practice automation.
+
+This version uses microservices in backend and SPA in frontend, and code quality is better compared with v1,
+but still the application is obviously **not production-ready** and **intentionally** lacks of high standards.
+
+Version 1, which is stored in branch v1.
 
 ## Architecture
 
@@ -7,8 +14,6 @@
 ## Deploy
 
 Execute [deploy.sh](deploy.sh).
-
-TODO insert video tutorial
 
 Using curl:
 
@@ -24,9 +29,12 @@ wget -O deploy.sh https://raw.githubusercontent.com/BenjaminGuzman/webmock/v2/de
 ./deploy.sh -h
 ```
 
-### TLS
+The script will download all configuration files required (docker-compose.yml and .env with default configurations)
+and modifies them depending on the given options.
 
-TODO insert video tutorial
+Note: This deploy option use already built docker images available [here](https://hub.docker.com/u/guzmanbenjamin)
+
+### TLS
 
 If you want to add TLS, the following architecture is suggested
 
@@ -40,8 +48,6 @@ More clearly, just add a non-dockerized nginx server with 2 main purposes:
 
 To add TLS to the non-dockerized nginx server [certbot](https://certbot.eff.org/) and 
 [Let's Encrypt](https://letsencrypt.org/) are recommended.
-
-**It may also be worth it to read the instructions on how to do it for v1** (branch v1)
 
 ## Develop
 
@@ -62,13 +68,13 @@ But remember **this is a mock app** and you should <u>take security seriously in
 ### Backend
 
 In order to run all backend microservices you need to execute `npm run start` (or `npm run start:dev`) from within each
-microservice directory, e.g. to start the _users_ microservice you need to be placed inside 
-[`backend/users`](backend/users) and run the already mentioned command.
+microservice directory, e.g. to start the _users_ microservice you need to be located inside 
+[`backend/users`](backend/users) and run `npm run start`.
 
-**Note**: if you don't want to set up a PostgreSQL database in your machine, you could simply start a docker container with 
-`docker compose -f docker-compose-psql.yml up`.
+If you don't want to set up a PostgreSQL or MongoDB database in your machine, you could simply start a docker
+container with `docker compose -f docker-compose-psql.yml up` or `docker compose -f docker-compose-mongo.yml up`.
 
-**Note**: If you want to **easily start** everything in development mode, simply use
+**Pro tip**: If you want to easily start everything in development mode, simply use
 [Microstart](https://github.com/BenjaminGuzman/microstart). Check [`microstart.yml`](microstart.yml)
 
 **Note**: The content microservice doesn't require authentication (JWT) because its contents are public anyway
@@ -92,14 +98,19 @@ purpose is to **learn and practice**.
 
 ### Frontend
 
-Simply run `npm run start` from within the [`frontend`](frontend) directory
+Simply run `npm run start` from within the [`frontend`](frontend) directory.
 
-## Usage
+## Administration
 
-### Special endpoints
+A CLI administration tool is likely to be included in the future.
 
-There are no special endpoints in v2, yet...
+This tool let you:
+
+- Insert music
+- Delete music
+- Delete all users
 
 ## License
 
-GPLv3
+![GPLv3](gplv3.png)
+
