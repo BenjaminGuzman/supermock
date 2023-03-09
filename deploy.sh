@@ -94,7 +94,7 @@ function help {
 	|  Run 'docker compose down' inside 'v1' and 'v2' directories
 	|  inside the given working directory.
 	|  If this flag is given, the rest of flags are ignored.
-	$(cha '-u' 'workdir')|- Start v1 and v2.
+		$(cha '-u' 'workdir')|- Start v1 and v2.
 	|  Run 'docker compose up -d' inside 'v1' and 'v2' directories
 	|  inside the given working directory.
 	|  Only use this option if v1 and v2 have already been configured.
@@ -105,7 +105,7 @@ function help {
 	echo "More info:  https://github.com/BenjaminGuzman/webmock"
 	echo "Author:     Benjamín Guzmán (https://benjaminguzman.dev)"
 	echo
-	echo -e "\033[37;1mUsage:\033[0m \033[34;1m$(basename $0)\033[0m $(cha '-d' 'domain') [$(cha '-w' 'workdir')] [$(cha '-t')] [$(cha '-f' 'filepath')] [$(cha '-s' 'workdir')]"
+	echo -e "\033[37;1mUsage:\033[0m \033[34;1m$(basename $0)\033[0m $(cha '-d' 'domain') [$(cha '-w' 'workdir')] [$(cha '-t')] [$(cha '-f' 'filepath')] [$(cha '-s' 'workdir')] [$(cha '-u' 'workdir')]"
 	echo
 	echo -e "\033[37;1mOptions:\033[0m"
 
